@@ -1,6 +1,6 @@
 # ADVENTURE XPERIENCE 
 #### Final project Bootcamp Hackaboss 2020 
-#### Project type Weekendesk web MVC (Model View Controller).
+##### Project type Weekendesk web MVC (Model View Controller).
 
 ## Backend Functionalities
 ### Routes
