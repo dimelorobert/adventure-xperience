@@ -1,10 +1,10 @@
 "use strict";
 
-const { connectDb, getConnection } = require("./database");
+const { dbConnection, getConnection } = require("./database.js");
 
 async function main() {
   // Esperar conexion base de datos
-  await connectDB();
+  await dbConnection();
 
   // Referencia
   const connection = await getConnection();
@@ -12,11 +12,12 @@ async function main() {
   // Create table
   await connection.query(`
   CREATE TABLE IF NOT EXISTS user(
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
+    id INT NOT NULL AUTO_INCREMENT, 
     name VARCHAR(100) NOT NULL, 
     email VARCHAR(100) NOT NULL, 
     country VARCHAR(100) NOT NULL, 
     city VARCHAR(100) NOT NULL, 
+    PRIMARY KEY(id)
   )
   `);
   console.log("initial structure created");

@@ -3,23 +3,26 @@
 // Modulos a usar
 const mysql = require("mysql2/promise");
 require("dotenv").config();
-const { USER_DB, PASSWORD_DB, DATABASE, HOST } = process.env;
+const { MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
 let pool;
 
 // Conectarse a la base de datos
-async function connectDb() {
-  // Creamos el pool para la conexion y almacenamos su valor
+async function dbConnection() {
   pool = mysql.createPool({
     connectionLimit: 10,
-    host: HOST,
-    user: USER_DB,
-    password: PASSWORD_DB,
-    database: DATABASE,
+    host: MYSQL_HOST,
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+    database: MYSQL_DATABASE,
   });
-  // Testea si la conexion es recibida  y despues ...
-  const testConnection = await pool.getConnection();
-  // Cierra conexion
-  testConnection.release();
+  try {
+    // Testea si la conexion es recibida  y despues ...
+    const testConnection = await pool.getConnection();
+    // Cierra conexion
+    testConnection.release();
+  } catch (error) {
+    console.error(error.message);
+  }
 }
 
 // Obtener pool de conexiones
@@ -30,4 +33,4 @@ async function getConnection() {
   return await pool.getConnection();
 }
 
-module.exports = { connectDb, getConnection };
+module.exports = { dbConnection, getConnection };

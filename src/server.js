@@ -16,7 +16,7 @@ const {
   deleteAdventure,
 } = require("./controllers");
 // Database
-const { connectDb } = require("./database");
+const { dbConnection } = require("./database.js");
 /////////////////// ROUTES //////////////////////////
 app.get("/adventures", adventureList);
 app.post("/adventures", newAdventure);
@@ -42,20 +42,12 @@ app.use(bodyParser.json());
 
 //////////////// SERVER //////////////////////
 // Se lanza servidor y se Conecta a la data baseal mismo tiempo
-// De esta forma garantizamos que cuando el cliente haga una peticion ya haya una conexion a la base de datos
-async function mainConectDb() {
-  try {
-    await connectDb();
-  } catch (error) {
-    console.log(
-      "error al intentar crear la conexion con la base de datos",
-      error
-    );
-  } finally {
-    // lanzar servidor
-    app.listen(port, () => {
-      console.log(`✔️ 🚀 >>>> Server working on PORT ${port}  <<<< 🚀 ✔️`);
-    });
-  }
+// De esta forma garantizamos que cuando el servidor comienza a escuchar ya haya una conexion a la base de datos
+async function main() {
+  await dbConnection();
+  // lanzar servidor
+  app.listen(port, () => {
+    console.log(`✔️ 🚀 >>>> Server working on PORT ${port}  <<<< 🚀 ✔️`);
+  });
 }
-mainConectDb();
+main();
