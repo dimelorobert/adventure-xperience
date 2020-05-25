@@ -3,42 +3,20 @@
 //////////////// Modulos a usar /////////////////////////
 require("dotenv").config();
 const express = require("express");
-const morgan = require("morgan");
-const bodyParser = require("body-parser");
 
 const app = express();
-app.set("port", process.env.PORT || 3002);
+
+// Configuracion puertos server
+const { PORT } = process.env;
+const portAssigned = PORT;
+app.set("port", portAssigned || 3002);
 const port = app.get("port");
-// controllers
-const {
-  adventureList,
-  newAdventure,
-  deleteAdventure,
-} = require("./controllers");
+
 // Database
-const { dbConnection } = require("./database.js");
-/////////////////// ROUTES //////////////////////////
-app.get("/adventures", adventureList);
-app.post("/adventures", newAdventure);
-app.delete("/adventures/:id", deleteAdventure);
-
-//////////////// MIDDLEWARES //////////////////////////
-// Console.log middleware
-app.use(morgan("dev"));
-
-// Error Middleware CONTROLADOR DE ERRORES
-app.use((error, request, response, next) => {
-  console.log(error);
-  response.status(error.httpCode || 500).send({ message: error.message });
-});
-
-// Middleware not found
-app.use((request, response) => {
-  response.status(404).send({ message: "❌ Page not found!😢" });
-});
-
-// Body Parser transforma el json que recibe en estructura de peticion automaticamente
-app.use(bodyParser.json());
+const { dbConnection } = require("./database/database");
+/////////////////// APP USES //////////////////////////
+app.use(require("./routes/adventureRoutes"));
+app.use(require("./middlewares"));
 
 //////////////// SERVER //////////////////////
 // Se lanza servidor y se Conecta a la data baseal mismo tiempo
