@@ -1,15 +1,25 @@
-"use strict";
+'use strict';
+
+// Modulos Requeridos
+const { getConnection } = require('../database');
 
 async function adventureList(request, response, next) {
-  response.send("Muestra todas las aventuras disponibles");
+  let connection;
+
+  connection = await getConnection();
+  const adventures = await connection.query(`SELECT * FROM adventure;`);
+  response.send({
+    status: 'ok',
+    data: adventures
+  });
 }
 
 async function newAdventure(request, response, next) {
-  response.send("Crea y guarda una nueva aventura");
+  response.send('Crea y guarda una nueva aventura');
 }
 
 async function deleteAdventure(request, response, next) {
-  response.send("Borra la aventura");
+  response.send('Borra la aventura');
 }
 
 module.exports = { adventureList, newAdventure, deleteAdventure };
