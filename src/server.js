@@ -20,6 +20,7 @@ const port = app.get('port');
 // Adventures
 const { adventureController } = require('./controllers/adventures');
 /////////////////// ROUTES //////////////////////////
+// Adventures
 app.get('/adventures', adventureController.lista);
 app.post('/adventures', adventureController.crea);
 app.delete('/adventures/:id', adventureController.borra);
@@ -40,7 +41,7 @@ app.use((request, response) => {
 module.exports = app;
 
 // Body Parser transforma el json que recibe en estructura de peticion automaticamente
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 //////////////// SERVER //////////////////////

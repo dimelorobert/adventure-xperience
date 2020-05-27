@@ -18,10 +18,8 @@ async function getConnection() {
       timezone: 'Z'
     });
   }
-
   return await pool.getConnection();
 }
-
 module.exports = {
   getConnection
 };
