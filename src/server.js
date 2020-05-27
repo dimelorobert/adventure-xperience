@@ -15,18 +15,14 @@ app.set('port', portAssigned || 3002);
 const port = app.get('port');
 
 // Database
-const { getConnection } = require('./database');
+
 /////////////////// CONTROLLERS //////////////////////////
 // Adventures
-const {
-  adventureList,
-  newAdventure,
-  deleteAdventure
-} = require('./controllers/');
+const { adventureController } = require('./controllers/adventures');
 /////////////////// ROUTES //////////////////////////
-app.get('/adventures', adventureList);
-app.post('/adventures', newAdventure);
-app.delete('/adventures/:id', deleteAdventure);
+app.get('/adventures', adventureController.lista);
+app.post('/adventures', adventureController.crea);
+app.delete('/adventures/:id', adventureController.borra);
 // Console.log middleware
 app.use(morgan('dev'));
 
@@ -44,6 +40,7 @@ app.use((request, response) => {
 module.exports = app;
 
 // Body Parser transforma el json que recibe en estructura de peticion automaticamente
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 //////////////// SERVER //////////////////////
