@@ -9,8 +9,8 @@ function formatDateToDB(date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-function generateError(message, code) {
-  const error = new Error(message);
+function errorGenerator(message, code) {
+  const error = new Error(' ❌ ', message, '😥');
   if (code) error.httpCode = code;
   return error;
 }
@@ -21,6 +21,6 @@ function randomString(size = 20) {
 
 module.exports = {
   formatDateToDB,
-  generateError,
+  errorGenerator,
   randomString
 };

@@ -8,7 +8,7 @@ const adventureController = {
   lista: async function adventureList(request, response, next) {
     try {
       connection = await getConnection();
-      const adventures = await connection.query(`SELECT * FROM adventure;`);
+      const [adventures] = await connection.query(`SELECT * FROM adventures;`);
 
       response.send({
         status: 'ok',
