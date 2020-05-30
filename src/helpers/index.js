@@ -10,7 +10,7 @@ function formatDateToDB(date) {
 }
 
 function errorGenerator(message, code) {
-  const error = new Error(' ❌ ', message, '😥');
+  const error = new Error(message);
   if (code) error.httpCode = code;
   return error;
 }
