@@ -2,7 +2,7 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const { adventuresSchema } = require('../models/adventures');
+const { adventuresSchema } = require('../models/');
 const { formatDateToDB, errorGenerator } = require('../helpers');
 let connection;
 
@@ -33,6 +33,17 @@ const adventureController = {
         vacancy,
         date_selected
       } = request.body;
+      const newAdventure = {
+        name,
+        description,
+        image,
+        price,
+        country,
+        city,
+        vacancy,
+        date_selected
+      };
+      console.log(newAdventure);
       if (
         !name ||
         !description ||
@@ -46,18 +57,19 @@ const adventureController = {
         errorGenerator('Please fill all the fields required', 404);
       }
       connection = await getConnection();
+
       await connection.query(
-        'INSERT INTO adventures(name, description, image, price, country, city, vacancy, date_selected) VALUES(":name", ":description", ":image", ":price", ":country", ":city", ":vacancy", ":date_selected");',
-        {
-          ':name': name,
-          ':description': description,
-          ':image': image,
-          ':price': price,
-          ':country': country,
-          ':city': city,
-          ':vacancy': vacancy,
-          ':date_selected': formatDateToDB(new Date())
-        }
+        'INSERT INTO adventures(name, description, image, price, country, city, vacancy, date_selected,user_id,category_id) VALUES(?,?,?,?,?,?,?,?);',
+        [
+          name,
+          description,
+          image,
+          price,
+          country,
+          city,
+          vacancy,
+          formatDateToDB(new Date())
+        ]
       );
 
       response.send({
