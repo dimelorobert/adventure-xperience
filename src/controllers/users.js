@@ -2,11 +2,11 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const { adventuresSchema } = require('../models/');
+const { usersSchema } = require('../models');
 const { formatDateToDB, errorGenerator } = require('../helpers');
 let connection;
 
-const adventuresController = {
+const usersController = {
   list: async (request, response, next) => {
     try {
       connection = await getConnection();
@@ -99,4 +99,4 @@ const adventuresController = {
   }
 };
 
-module.exports = { adventuresController };
+module.exports = { usersController };
