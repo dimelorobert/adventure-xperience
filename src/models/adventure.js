@@ -2,7 +2,7 @@
 const Joi = require('@hapi/joi').extend(require('@hapi/joi-date'));
 const { errorGenerator } = require('../helpers');
 
-const adventuresSchema = Joi.object({
+const adventureSchema = Joi.object({
   name: Joi.string()
     .min(3)
     .max(30)
@@ -57,5 +57,5 @@ const adventuresSchema = Joi.object({
 });
 
 module.exports = {
-  adventuresSchema
+  adventureSchema
 };

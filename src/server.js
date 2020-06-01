@@ -16,12 +16,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 /////////////////// CONTROLLERS //////////////////////////
 // Adventures
-const { adventuresController } = require('./controllers');
+const { adventureController } = require('./controllers');
 /////////////////// ROUTES //////////////////////////
 // Adventures
-app.get('/adventures', adventuresController.list);
-app.post('/adventures', adventuresController.create);
-app.delete('/adventures/:id', adventuresController.delete);
+app.get('/adventures', adventureController.list);
+app.post('/adventures', adventureController.create);
+app.delete('/adventures/:id', adventureController.delete);
 
 // MIDDLEWARE CONTROLADOR DE ERRORES
 //Errores previos a Middleware llegan aqui

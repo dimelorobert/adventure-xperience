@@ -5,7 +5,7 @@ const Joi = require('@hapi/joi').extend(require('@hapi/joi-date'));
 
 const { errorGenerator } = require('../helpers');
 
-const categoriesSchema = Joi.object({
+const categorySchema = Joi.object({
   name: Joi.string()
     .min(3)
     .max(60)
@@ -29,5 +29,5 @@ const categoriesSchema = Joi.object({
 });
 
 module.exports = {
-  categoriesSchema
+  categorySchema
 };

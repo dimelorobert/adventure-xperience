@@ -1,11 +1,10 @@
 'use strict';
 
-const { usersController } = require('./users');
-const { adventuresController } = require('./adventures');
-const { categoriesController } = require('./categories');
+//const { userController } = require('./user');
+const adventureController = require('./adventure');
+//const { categoryController } = require('./category');
 
-module.exports = {
-  usersController,
-  adventuresController,
-  categoriesController
-};
+module.exports =
+  //userController,
+  adventureController;
+//categoryController¡;

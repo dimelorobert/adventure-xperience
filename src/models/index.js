@@ -1,10 +1,10 @@
 'use strict';
-const { usersSchema } = require('./users');
-const { categoriesSchema } = require('./categories');
-const { AdventuresSchema } = require('./adventures');
+const { userSchema } = require('./user');
+const { categorySchema } = require('./category');
+const { AdventureSchema } = require('./adventure');
 
 module.exports = {
-  usersSchema,
-  categoriesSchema,
-  AdventuresSchema
+  userSchema,
+  categorySchema,
+  AdventureSchema
 };
