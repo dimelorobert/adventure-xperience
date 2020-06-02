@@ -5,10 +5,12 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 // Console.log middleware
 app.use(morgan('dev'));
+app.use(cors());
 // Body Parser transforma el json que recibe en estructura de peticion automaticamente
 //app.use(bodyParser.urlencoded({ extended: false }));
 /////////////////// MIDDLEWARES //////////////////////////
