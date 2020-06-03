@@ -2,7 +2,7 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const AdventureSchema = require('../models');
+const adventureSchema = require('../models');
 const { formatDateToDB, errorGenerator } = require('../helpers');
 let connection;
 
@@ -20,30 +20,8 @@ const adventureController = {
     }
   },
   create: async (request, response, next) => {
+    const { user_id } = request.auth;
     try {
-      await AdventureSchema.validateAsync(request.body);
-
-      const {
-        name,
-        description,
-        image,
-        price,
-        country,
-        city,
-        vacancy,
-        date_selected
-      } = request.body;
-      const newAdventure = {
-        name,
-        description,
-        image,
-        price,
-        country,
-        city,
-        vacancy,
-        date_selected
-      };
-      console.log(newAdventure);
       if (
         !name ||
         !description ||
@@ -56,9 +34,21 @@ const adventureController = {
       ) {
         errorGenerator('Please fill all the fields required', 404);
       }
+      await adventureSchema.validateAsync(request.body);
       connection = await getConnection();
-
-      await connection.query(
+      const {
+        name,
+        description,
+        image,
+        price,
+        country,
+        city,
+        vacancy,
+        date_selected
+      } = request.body;
+      const [
+        adventure
+      ] = await connection.query(
         'INSERT INTO adventures(name, description, image, price, country, city, vacancy, date_selected,user_id,category_id) VALUES(?,?,?,?,?,?,?,?);',
         [
           name,
@@ -72,8 +62,11 @@ const adventureController = {
         ]
       );
 
+      console.log(adventure);
+
       response.send({
         status: 200,
+
         data: {
           name,
           description,
@@ -84,7 +77,8 @@ const adventureController = {
           vacancy,
           date_selected
         },
-        message: 'Adventure added succesfully.'
+        message: 'Adventure added succesfully.',
+        adventure_id: adventure.insertId
       });
     } catch (error) {
       next(error);

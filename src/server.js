@@ -17,14 +17,21 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 /////////////////// CONTROLLERS //////////////////////////
-// Adventures
-const { adventureController } = require('./controllers');
+const { adventureController } = require('./controllers/');
+const { categoryController } = require('./controllers/');
+const { userController } = require('./controllers/');
 /////////////////// ROUTES //////////////////////////
 // Adventures
 app.get('/adventures', adventureController.list);
 app.post('/adventures', adventureController.create);
 app.delete('/adventures/:id', adventureController.delete);
 
+// Categories
+app.post('/category', categoryController.add);
+
+// Users
+app.get('/user-list', userController.list);
+app.post('/new-user', userController.create);
 // MIDDLEWARE CONTROLADOR DE ERRORES
 //Errores previos a Middleware llegan aqui
 app.use((error, request, response, next) => {

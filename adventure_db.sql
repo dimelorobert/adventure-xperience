@@ -6,16 +6,17 @@ USE adventure_db;
 /*//////////////////////////////////////// TABLA USUARIO ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS user ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-name VARCHAR(60) NOT NULL ,
+name VARCHAR(30) NOT NULL ,
 surname VARCHAR(60) NOT NULL , 
 date_birth DATE NOT NULL ,
 address VARCHAR(60),
-country VARCHAR(60) NOT NULL ,
-city VARCHAR(60) NOT NULL , 
-email VARCHAR(60) NOT NULL ,
-nick VARCHAR(20) , 
+country VARCHAR(30) NOT NULL ,
+city VARCHAR(30) NOT NULL , 
+nickname VARCHAR(20) NOT NULL UNIQUE, 
+email VARCHAR(60) NOT NULL UNIQUE,
 password VARCHAR(16) NOT NULL , 
-avatar VARCHAR(120) ,
+avatar VARCHAR(60) ,
+role ENUM('admin','userRole'), 
 creating_date DATETIME NOT NULL,
 updating_date DATETIME NOT NULL,
 ip VARCHAR(20) NOT NULL , 
@@ -26,7 +27,6 @@ PRIMARY KEY(id)
 CREATE TABLE IF NOT EXISTS category ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(60) NOT NULL ,
-description VARCHAR(500) ,
 image VARCHAR(120) ,
 date_creation DATETIME NOT NULL,
 user_id INT UNSIGNED ,  
@@ -34,15 +34,17 @@ FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
 PRIMARY KEY(id , user_id)
 );
 /*//////////////////////////////////////// TABLA AVENTURA ///////////////////////////////*/
-CREATE TABLE IF NOT EXISTS adventures ( 
+CREATE TABLE IF NOT EXISTS adventure ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(60) NOT NULL ,
 description VARCHAR(500) NOT NULL,
 image VARCHAR(120),
-price DECIMAL(5,2) NOT NULL,
+video VARCHAR(120),
+price DECIMAL(5,2) ,
 country VARCHAR(60) NOT NULL ,
 city VARCHAR(60) NOT NULL ,
 vacancy INT NOT NULL DEFAULT 10, 
+available BOOLEAN ,
 date_selected DATETIME NOT NULL,
 user_id INT UNSIGNED , 
 category_id INT UNSIGNED , 
@@ -52,10 +54,9 @@ PRIMARY KEY(id, user_id, category_id)
 );
 /*//////////////////////////////////////// TABLA CART /////////////////////////////////*/
 CREATE TABLE IF NOT EXISTS cart ( 
-
 id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
-checkout_date DATETIME NOT NULL,
-purchase_date DATETIME NOT NULL,
+selected_date DATETIME NOT NULL,
+purchased_date DATETIME NOT NULL,
 total_price FLOAT DEFAULT 0, 
 user_id INT UNSIGNED ,
 adventure_id INT UNSIGNED ,   
@@ -75,7 +76,7 @@ PRIMARY KEY (id)
 /*//////////////////////////////////////// TABLA RESEÑA ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS review ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-points VARCHAR(35) NOT NULL ,
+points INT NOT NULL ,
 comments VARCHAR(500) ,
 date_post DATETIME NOT NULL , 
 user_id INT UNSIGNED ,
@@ -116,7 +117,7 @@ DESCRIBE user;
 /* Mostrar tabla*/
 SHOW TABLES;
 /* Eliminar tabla por completo*/
-DROP TABLE adventure;
+DROP TABLE adventures;
 /* Eliminar database`por completo*/
 DROP DATABASE adventure_db;
 /* Eliminar fila en concreto*/
@@ -133,11 +134,12 @@ INSERT INTO user VALUES( null,'Ana',
  '1995-09-09', 
  'Plaza del Comercio 15 , 2.Izq',
  'España', 
- 'Alicante', 
- 'anav@hotmail.com', 
+ 'Alicante',
  'lilMileG',
+ 'anav@hotmail.com', 
  '123AnV.',
- 'https://img.com/avatar.jpg', 
+ 'https://img.com/avatar.jpg',
+ 'user', 
  '2020-01-10 17:30:00', 
  '2020-01-15 10:20:02', 
  '58.234.91.02'
@@ -147,11 +149,12 @@ INSERT INTO user VALUES ( null, 'Robert',
 '1990-04-06', 
 'Calle Estrella 16 piso 4 puerta 401',  
 'España',
-'A Coruña', 
-'airbusjayrobert@gmail.com', 
+'A Coruña',
 'DimeloRobert', 
+'airbusjayrobert@gmail.com', 
 'Robert591.', 
-'https://img.com/avatar.jpg', 
+'https://img.com/avatar.jpg',
+'user', 
 '2020-01-29 05:50:06', 
 '2020-02-02 15:50:36', 
 '87.219.91.42');
@@ -160,11 +163,12 @@ INSERT INTO user VALUES( null, 'Miguel Angel',
 '1999-06-07', 
 'Avenida Travalon 16 piso 5d', 
 'España', 
-'Valencia', 
+'Valencia',
+'duquecito7',
 'duquecito7@yahoo.com', 
-'duquecito7', 
 'Duquecito123',
-'https://img.com/avatar.jpg', 
+'https://img.com/avatar.jpg',
+'user', 
 '2020-06-30 17:30:00', 
 '2020-01-15 14:20:02',
 '18.344.41.102');

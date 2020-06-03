@@ -10,10 +10,10 @@ const userController = {
   list: async (request, response, next) => {
     try {
       connection = await getConnection();
-      const [adventures] = await connection.query(`SELECT * FROM adventures;`);
+      const [users] = await connection.query(`SELECT * FROM user;`);
       response.send({
         status: 200,
-        data: adventures
+        data: users
       });
     } catch (error) {
       next(error);
@@ -21,54 +21,59 @@ const userController = {
   },
   create: async (request, response, next) => {
     try {
-      await userSchema.validateAsync(request.body);
-
+      console.log(request.body);
+      // await userSchema.validateAsync(request.body);
       const {
         name,
-        description,
-        image,
-        price,
+        surname,
+        date_birth,
+        address,
         country,
         city,
-        vacancy,
-        date_selected
+        nickname,
+        email,
+        password,
+        avatar,
+        role,
+        updating_date,
+        ip
       } = request.body;
-      const newAdventure = {
-        name,
-        description,
-        image,
-        price,
-        country,
-        city,
-        vacancy,
-        date_selected
-      };
-      console.log(newAdventure);
       if (
         !name ||
-        !description ||
-        !image ||
-        !price ||
+        !surname ||
+        !date_birth ||
+        !address ||
         !country ||
         !city ||
-        !vacancy ||
-        !date_selected
+        !nickname ||
+        !email ||
+        !password ||
+        !avatar ||
+        !role ||
+        !updating_date ||
+        ip
       ) {
-        errorGenerator('Please fill all the fields required', 404);
+        errorGenerator('Please fill all the fields required', 400);
       }
       connection = await getConnection();
-
+      // SANITIZAR DATOS
       await connection.query(
-        'INSERT INTO adventures(name, description, image, price, country, city, vacancy, date_selected,user_id,category_id) VALUES(?,?,?,?,?,?,?,?);',
+        'INSERT INTO user(name, surname, date_birth, address, country, city, nickname, email, password, avatar, role, creating_date, updating_date, ip) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);',
         [
           name,
-          description,
-          image,
-          price,
+          surname,
+          date_birth,
+          address,
           country,
           city,
-          vacancy,
-          formatDateToDB(new Date())
+          nickname,
+          email,
+          password,
+          avatar,
+          role,
+          formatDateToDB(new Date()),
+          updating_date,
+          ip
         ]
       );
 
@@ -76,13 +81,18 @@ const userController = {
         status: 200,
         data: {
           name,
-          description,
-          image,
-          price,
+          surname,
+          date_birth,
+          address,
           country,
           city,
-          vacancy,
-          date_selected
+          nickname,
+          email,
+          password,
+          avatar,
+          role,
+          updating_date,
+          ip
         },
         message: 'Adventure added succesfully.'
       });
@@ -99,4 +109,4 @@ const userController = {
   }
 };
 
-module.exports = userController;
+module.exports = { userController };
