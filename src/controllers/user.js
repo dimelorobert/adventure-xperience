@@ -95,8 +95,8 @@ const userController = {
       const [
         getUser
       ] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
-
-      if (!getUser.length) {
+      const [userGetById] = getUser;
+      if (!userGetById) {
         throw errorGenerator(`The user with id ${id} does not exists`, 404);
       }
 
@@ -105,8 +105,6 @@ const userController = {
         data: getUser,
         message: 'Your user searching was succesfully.'
       });
-      // const [userData] = getUser;
-      // const payload = {};
     } catch (error) {
       next(error);
     } finally {
