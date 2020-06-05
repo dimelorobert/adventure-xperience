@@ -9,16 +9,15 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(30) NOT NULL ,
 surname VARCHAR(60) NOT NULL , 
 date_birth DATE NOT NULL ,
-address VARCHAR(60),
 country VARCHAR(30) NOT NULL ,
 city VARCHAR(30) NOT NULL , 
 nickname VARCHAR(20) NOT NULL UNIQUE, 
 email VARCHAR(60) NOT NULL UNIQUE,
 password VARCHAR(16) NOT NULL , 
 avatar VARCHAR(60) ,
-role ENUM('admin','userRole'), 
-creating_date DATETIME NOT NULL,
-updating_date DATETIME NOT NULL,
+isAdmin BOOLEAN DEFAULT 0,
+creating_date DATETIME,
+updating_date DATETIME,
 ip VARCHAR(20) NOT NULL , 
 PRIMARY KEY(id)
 );
@@ -57,11 +56,11 @@ CREATE TABLE IF NOT EXISTS cart (
 id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
 selected_date DATETIME NOT NULL,
 purchased_date DATETIME NOT NULL,
-total_price FLOAT DEFAULT 0, 
+total_price DECIMAL(5,2), 
 user_id INT UNSIGNED ,
 adventure_id INT UNSIGNED ,   
 FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
-FOREIGN KEY adventure_id (adventure_id) REFERENCES adventures(id) ,
+FOREIGN KEY adventure_id (adventure_id) REFERENCES adventure(id) ,
 PRIMARY KEY (id , user_id, adventure_id)
 );
 /*//////////////////////////////////////// TABLA CHAT /////////////////////////////////*/
@@ -82,7 +81,7 @@ date_post DATETIME NOT NULL ,
 user_id INT UNSIGNED ,
 adventure_id INT UNSIGNED ,   
 FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
-FOREIGN KEY adventure_id (adventure_id) REFERENCES adventures(id) ,
+FOREIGN KEY adventure_id (adventure_id) REFERENCES adventure(id) ,
 PRIMARY KEY (id)
 );
 /*//////////////////////////////////////// TABLA FACTURAS /////////////////////////////*/
@@ -132,14 +131,13 @@ SELECT * FROM user;
 INSERT INTO user VALUES( null,'Ana', 
  'Verdeal', 
  '1995-09-09', 
- 'Plaza del Comercio 15 , 2.Izq',
  'España', 
  'Alicante',
  'lilMileG',
  'anav@hotmail.com', 
  '123AnV.',
  'https://img.com/avatar.jpg',
- 'user', 
+ 0, 
  '2020-01-10 17:30:00', 
  '2020-01-15 10:20:02', 
  '58.234.91.02'
@@ -147,28 +145,26 @@ INSERT INTO user VALUES( null,'Ana',
 INSERT INTO user VALUES ( null, 'Robert', 
 'Hernandez', 
 '1990-04-06', 
-'Calle Estrella 16 piso 4 puerta 401',  
 'España',
 'A Coruña',
 'DimeloRobert', 
 'airbusjayrobert@gmail.com', 
 'Robert591.', 
 'https://img.com/avatar.jpg',
-'user', 
+1, 
 '2020-01-29 05:50:06', 
 '2020-02-02 15:50:36', 
 '87.219.91.42');
 INSERT INTO user VALUES( null, 'Miguel Angel', 
 'Duque', 
 '1999-06-07', 
-'Avenida Travalon 16 piso 5d', 
 'España', 
 'Valencia',
 'duquecito7',
 'duquecito7@yahoo.com', 
 'Duquecito123',
 'https://img.com/avatar.jpg',
-'user', 
+0, 
 '2020-06-30 17:30:00', 
 '2020-01-15 14:20:02',
 '18.344.41.102');
@@ -183,6 +179,6 @@ INSERT INTO category VALUES(null, 'Buceo', 'Excursion Buceo en grupo', 'https://
 /*////////////////////////////////////// AVENTURAS EN TABLAS ///////////////////////////////////////////*/
 /* consultar usuarios tabla ADVENTURES*/
 SELECT * FROM adventures;
-INSERT INTO adventures VALUES(null, 'Paracaidismo', 'Excursion Paracaidas en grupo', 
+INSERT INTO adventure VALUES(null, 'Paracaidismo', 'Excursion Paracaidas en grupo', 
 'https://img.com/img.jpg',50.95,'España', 'Valencia', 5,'2020-01-15 16:30:22',3,1);
-INSERT INTO adventures VALUES(null, 'Kayak', 'Excursion Kayak en grupo', 'https://img.com/img.jpg', 49.50, 'España', 'Alicante', 3, '2004-02-4 10:34:16',1,2);
+INSERT INTO adventure VALUES(null, 'Kayak', 'Excursion Kayak en grupo', 'https://img.com/img.jpg', 49.50, 'España', 'Alicante', 3, '2004-02-4 10:34:16',1,2);

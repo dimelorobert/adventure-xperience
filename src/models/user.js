@@ -68,6 +68,7 @@ const usersSchema = Joi.object({
         400
       )
     ),
+  role: Joi.string().max(10),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
   updating_date: Joi.date().format('YYYY-MM-DD').utc(),
   ip: Joi.string()

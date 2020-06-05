@@ -4,6 +4,7 @@
 const { getConnection } = require('../database');
 const { userSchema } = require('../models');
 const { formatDateToDB, errorGenerator } = require('../helpers');
+let dateNow = formatDateToDB(new Date());
 let connection;
 
 const userController = {
@@ -19,7 +20,7 @@ const userController = {
       next(error);
     }
   },
-  create: async (request, response, next) => {
+  signup: async (request, response, next) => {
     try {
       console.log(request.body);
       // await userSchema.validateAsync(request.body);
@@ -27,14 +28,13 @@ const userController = {
         name,
         surname,
         date_birth,
-        address,
         country,
         city,
         nickname,
         email,
         password,
         avatar,
-        role,
+        isAdmin,
         updating_date,
         ip
       } = request.body;
@@ -42,36 +42,33 @@ const userController = {
         !name ||
         !surname ||
         !date_birth ||
-        !address ||
         !country ||
         !city ||
         !nickname ||
         !email ||
         !password ||
         !avatar ||
-        !role ||
-        !updating_date ||
-        ip
+        !isAdmin
       ) {
         errorGenerator('Please fill all the fields required', 400);
       }
+      // Conexion a la base de datos para guardar datos obtenidos y validados del request.body
       connection = await getConnection();
       // SANITIZAR DATOS
-      await connection.query(
-        'INSERT INTO user(name, surname, date_birth, address, country, city, nickname, email, password, avatar, role, creating_date, updating_date, ip) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?);',
+      const newUser = await connection.query(
+        'INSERT INTO user(name, surname, date_birth, country, city, nickname, email, password, avatar, isAdmin, creating_date, updating_date, ip) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);',
         [
           name,
           surname,
           date_birth,
-          address,
           country,
           city,
           nickname,
           email,
           password,
           avatar,
-          role,
-          formatDateToDB(new Date()),
+          isAdmin,
+          dateNow,
           updating_date,
           ip
         ]
@@ -79,21 +76,8 @@ const userController = {
 
       response.send({
         status: 200,
-        data: {
-          name,
-          surname,
-          date_birth,
-          address,
-          country,
-          city,
-          nickname,
-          email,
-          password,
-          avatar,
-          role,
-          updating_date,
-          ip
-        },
+        // almaceno los datos en newUser por si los quiero manipular despues
+        data: newUser,
         message: 'Adventure added succesfully.'
       });
     } catch (error) {
@@ -104,8 +88,54 @@ const userController = {
       }
     }
   },
+  get: async (request, response, next) => {
+    try {
+      const { id } = request.params;
+      connection = await getConnection();
+      const [
+        getUser
+      ] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
+
+      if (!getUser.length) {
+        throw errorGenerator(`The user with id ${id} does not exists`, 404);
+      }
+
+      response.send({
+        status: 200,
+        data: getUser,
+        message: 'Your user searching was succesfully.'
+      });
+      // const [userData] = getUser;
+      // const payload = {};
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   delete: async (request, response, next) => {
-    response.send('Borra la aventura');
+    try {
+      const { id } = request.params;
+      connection = await getConnection();
+      const [
+        userToDelete
+      ] = await connection.query(` DELETE FROM user WHERE id=?`, [id]);
+      console.log(userToDelete);
+
+      response.send({
+        status: 200,
+        data: userToDelete,
+        message: `User with  id ${id} has been deleted.`
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
   }
 };
 

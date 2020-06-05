@@ -3,35 +3,24 @@
 //////////////// Modulos a usar /////////////////////////
 require('dotenv').config();
 const express = require('express');
-const morgan = require('morgan');
+const path = require('path');
+const router = require('./routes');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 
 const app = express();
-// Console.log middleware
+const morgan = require('morgan');
+const cors = require('cors');
+
 app.use(morgan('dev'));
 app.use(cors());
-// Body Parser transforma el json que recibe en estructura de peticion automaticamente
-//app.use(bodyParser.urlencoded({ extended: false }));
+
 /////////////////// MIDDLEWARES //////////////////////////
+// Body Parser transforma el json que recibe en estructura de peticion automaticamente
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-/////////////////// CONTROLLERS //////////////////////////
-const { adventureController } = require('./controllers/');
-const { categoryController } = require('./controllers/');
-const { userController } = require('./controllers/');
-/////////////////// ROUTES //////////////////////////
-// Adventures
-app.get('/adventures', adventureController.list);
-app.post('/adventures', adventureController.create);
-app.delete('/adventures/:id', adventureController.delete);
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/', router);
 
-// Categories
-app.post('/category', categoryController.add);
-
-// Users
-app.get('/user-list', userController.list);
-app.post('/new-user', userController.create);
 // MIDDLEWARE CONTROLADOR DE ERRORES
 //Errores previos a Middleware llegan aqui
 app.use((error, request, response, next) => {

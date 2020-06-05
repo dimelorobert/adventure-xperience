@@ -4,38 +4,21 @@
 const { getConnection } = require('../database');
 const adventureSchema = require('../models');
 const { formatDateToDB, errorGenerator } = require('../helpers');
+const dateNow = formatDateToDB(new Date());
 let connection;
 
 const adventureController = {
   list: async (request, response, next) => {
     try {
       connection = await getConnection();
-      const [adventures] = await connection.query(`SELECT * FROM adventures;`);
-      response.send({
-        status: 200,
-        data: adventures
-      });
+      const [adventures] = await connection.query(`SELECT * FROM adventure;`);
+      response.status(200).json(adventures);
     } catch (error) {
       next(error);
     }
   },
-  create: async (request, response, next) => {
-    const { user_id } = request.auth;
+  new: async (request, response, next) => {
     try {
-      if (
-        !name ||
-        !description ||
-        !image ||
-        !price ||
-        !country ||
-        !city ||
-        !vacancy ||
-        !date_selected
-      ) {
-        errorGenerator('Please fill all the fields required', 404);
-      }
-      await adventureSchema.validateAsync(request.body);
-      connection = await getConnection();
       const {
         name,
         description,
@@ -44,12 +27,30 @@ const adventureController = {
         country,
         city,
         vacancy,
-        date_selected
+        available,
+        user_id
       } = request.body;
+
+      if (
+        !name ||
+        !description ||
+        !image ||
+        !price ||
+        !country ||
+        !city ||
+        !vacancy ||
+        !available ||
+        !user_id
+      ) {
+        errorGenerator('Please fill all the fields required', 404);
+      }
+
+      connection = await getConnection();
+
       const [
         adventure
       ] = await connection.query(
-        'INSERT INTO adventures(name, description, image, price, country, city, vacancy, date_selected,user_id,category_id) VALUES(?,?,?,?,?,?,?,?);',
+        'INSERT INTO adventure (name, description, image, price, country, city, vacancy, available, date_selected) VALUES(?,?,?,?,?,?,?,?,?);',
         [
           name,
           description,
@@ -58,16 +59,16 @@ const adventureController = {
           country,
           city,
           vacancy,
-          formatDateToDB(new Date())
+          available,
+          dateNow,
+          user_id
         ]
       );
-
       console.log(adventure);
-
       response.send({
         status: 200,
-
         data: {
+          id: adventure.lastID,
           name,
           description,
           image,
@@ -75,10 +76,10 @@ const adventureController = {
           country,
           city,
           vacancy,
-          date_selected
-        },
-        message: 'Adventure added succesfully.',
-        adventure_id: adventure.insertId
+          available,
+          creation_date: dateNow,
+          user_id
+        }
       });
     } catch (error) {
       next(error);

@@ -118,13 +118,6 @@ async function main() {
     `);
     console.log('tabla invoice creada');
 
-    await connection.query(`
-    INSERT INTO adventure(
-      name, description, image, price, city, vacancy, date_select) 
-      VALUES('Paracaidismo', 'Excursion Paracaidas en grupo', 'https://img.com/img.jpg',50.95, 'Valencia', 5, 
-      '${formatDateToDB(new Date())}
-    ');
-  `);
     console.log('insercion de datos tabla adventures');
     console.log('Base de datos funcionando correctamente');
     connection.release();
