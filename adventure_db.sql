@@ -9,16 +9,14 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(30) NOT NULL ,
 surname VARCHAR(60) NOT NULL , 
 date_birth DATE NOT NULL ,
-country VARCHAR(30) NOT NULL ,
-city VARCHAR(30) NOT NULL , 
+country VARCHAR(30),
+city VARCHAR(30), 
 nickname VARCHAR(20) NOT NULL UNIQUE, 
 email VARCHAR(60) NOT NULL UNIQUE,
-password VARCHAR(16) NOT NULL , 
+password VARCHAR(100) NOT NULL , 
 avatar VARCHAR(60) ,
-isAdmin BOOLEAN DEFAULT 0,
 creating_date DATETIME,
-updating_date DATETIME,
-ip VARCHAR(20) NOT NULL , 
+ip VARCHAR(20) , -- se puede quitar
 PRIMARY KEY(id)
 );
 
@@ -28,9 +26,7 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(60) NOT NULL ,
 image VARCHAR(120) ,
 date_creation DATETIME NOT NULL,
-user_id INT UNSIGNED ,  
-FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
-PRIMARY KEY(id , user_id)
+PRIMARY KEY(id)
 );
 /*//////////////////////////////////////// TABLA AVENTURA ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS adventure ( 
@@ -45,23 +41,21 @@ city VARCHAR(60) NOT NULL ,
 vacancy INT NOT NULL DEFAULT 10, 
 available BOOLEAN ,
 date_selected DATETIME NOT NULL,
-user_id INT UNSIGNED , 
 category_id INT UNSIGNED , 
-FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
 FOREIGN KEY fk_category_id (category_id) REFERENCES category(id) , 
-PRIMARY KEY(id, user_id, category_id)
+PRIMARY KEY(id)
 );
 /*//////////////////////////////////////// TABLA CART /////////////////////////////////*/
 CREATE TABLE IF NOT EXISTS cart ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT, 
-selected_date DATETIME NOT NULL,
 purchased_date DATETIME NOT NULL,
 total_price DECIMAL(5,2), 
+paid BOOLEAN,
 user_id INT UNSIGNED ,
 adventure_id INT UNSIGNED ,   
 FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
 FOREIGN KEY adventure_id (adventure_id) REFERENCES adventure(id) ,
-PRIMARY KEY (id , user_id, adventure_id)
+PRIMARY KEY (id)
 );
 /*//////////////////////////////////////// TABLA CHAT /////////////////////////////////*/
 CREATE TABLE IF NOT EXISTS chat ( 
@@ -69,7 +63,9 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 message VARCHAR(500) , 
 date_post DATETIME , 
 user_id INT UNSIGNED ,
+adventure_id INT UNSIGNED,
 FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
+FOREIGN KEY fk_adventure_id (adventure_id) REFERENCES adventure(id) ,
 PRIMARY KEY (id)
 );
 /*//////////////////////////////////////// TABLA RESEÑA ///////////////////////////////*/
@@ -101,9 +97,7 @@ comments VARCHAR(500) ,
 total_price FLOAT DEFAULT 0,
 discount FLOAT DEFAULT 0 ,
 state ENUM ('pendiente','pagado') ,
-user_id INT UNSIGNED , 
 cart_id INT UNSIGNED ,
-FOREIGN KEY fk_user_id(user_id) REFERENCES user(id) ,
 FOREIGN KEY fk_cart_id(cart_id) REFERENCES cart(id) ,
 PRIMARY KEY (id)
 );
