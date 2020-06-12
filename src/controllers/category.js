@@ -2,8 +2,8 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const categorySchema = require('../models');
-const { formatDateToDB, errorGenerator } = require('../helpers');
+const {categorySchema} = require('../validations');
+const { helpers } = require('../helpers');
 let connection;
 
 const categoryController = {

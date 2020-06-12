@@ -2,9 +2,9 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const adventureSchema = require('../models');
-const { formatDateToDB, errorGenerator } = require('../helpers');
-const dateNow = formatDateToDB(new Date());
+const {adventureSchema} = require('../validations');
+const { helpers } = require('../helpers');
+const dateNow = helpers.formatDateToDB(new Date());
 let connection;
 
 const adventureController = {

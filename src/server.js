@@ -6,6 +6,7 @@ const express = require('express');
 const path = require('path');
 const router = require('./routes');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 
 const app = express();
 const morgan = require('morgan');
@@ -19,6 +20,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(fileUpload());
 app.use('/', router);
 
 // MIDDLEWARE CONTROLADOR DE ERRORES

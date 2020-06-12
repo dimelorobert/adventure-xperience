@@ -3,7 +3,7 @@
 'use strict';
 const Joi = require('@hapi/joi').extend(require('@hapi/joi-date'));
 
-const { errorGenerator } = require('../helpers');
+const { helpers } = require('../helpers');
 
 const categorySchema = Joi.object({
   name: Joi.string()
@@ -11,7 +11,7 @@ const categorySchema = Joi.object({
     .max(60)
     .required()
     .error(
-      errorGenerator(
+      helpers.errorGenerator(
         'Please, this field is required and cannot be longer than 60 characters.',
         400
       )
@@ -20,7 +20,7 @@ const categorySchema = Joi.object({
     .max(500)
     .required()
     .error(
-      errorGenerator(
+      helpers.errorGenerator(
         'Please, this field is required and cannot be longer than 500  characters.',
         400
       )

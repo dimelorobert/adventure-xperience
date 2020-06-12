@@ -2,9 +2,10 @@
 
 // Modulos Requeridos
 const { getConnection } = require('../database');
-const { userSchema } = require('../models');
-const { formatDateToDB, errorGenerator } = require('../helpers');
-let dateNow = formatDateToDB(new Date());
+const { userSchema } = require('../validations');
+const { helpers } = require('../helpers');
+let dateNow = helpers.formatDateToDB(new Date());
+let creating_date = helpers.formatDateJSON(new Date());
 let connection;
 
 const userController = {
@@ -20,10 +21,10 @@ const userController = {
       next(error);
     }
   },
-  signup: async (request, response, next) => {
+  signup: async (request, resolve, next) => {
     try {
       console.log(request.body);
-      // await userSchema.validateAsync(request.body);
+      await userSchema.validateAsync(request.body);
       const {
         name,
         surname,
@@ -34,29 +35,37 @@ const userController = {
         email,
         password,
         avatar,
-        isAdmin,
-        updating_date,
-        ip
+        
       } = request.body;
-      if (
-        !name ||
-        !surname ||
-        !date_birth ||
-        !country ||
-        !city ||
-        !nickname ||
-        !email ||
-        !password ||
-        !avatar ||
-        !isAdmin
-      ) {
-        errorGenerator('Please fill all the fields required', 400);
+
+      ////// Foto avatar
+      let savedFileName;
+      if (request.files && request.files.avatar) {
+        try {
+          let uploadImageBody = request.files.avatar;
+          savedFileName = await helpers.processAndSavePhoto(uploadImageBody);
+        } catch (error) {
+          throw helpers.errorGenerator(
+            'Image have not been saved in database, try again,please',
+            400
+          );
+        }
       }
       // Conexion a la base de datos para guardar datos obtenidos y validados del request.body
       connection = await getConnection();
       // SANITIZAR DATOS
-      const newUser = await connection.query(
-        'INSERT INTO user(name, surname, date_birth, country, city, nickname, email, password, avatar, isAdmin, creating_date, updating_date, ip) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?);',
+      await connection.query(
+        `INSERT INTO user(
+        name,
+        surname,
+        date_birth,
+        country,
+        city,
+        nickname,
+        email,
+        password,
+        avatar,
+        creation_date) VALUES(?,?,?,?,?,?,?,?,?,?);`,
         [
           name,
           surname,
@@ -66,19 +75,26 @@ const userController = {
           nickname,
           email,
           password,
-          avatar,
-          isAdmin,
-          dateNow,
-          updating_date,
-          ip
+          savedFileName,
+          dateNow
         ]
       );
 
-      response.send({
+      resolve.send({
         status: 200,
         // almaceno los datos en newUser por si los quiero manipular despues
-        data: newUser,
-        message: 'Adventure added succesfully.'
+        data: {
+          name,
+          surname,
+          date_birth,
+          country,
+          city,
+          nickname,
+          email,
+          avatar,
+          creating_date
+        },
+        message: 'Your account was created succesfully.'
       });
     } catch (error) {
       next(error);
@@ -88,7 +104,73 @@ const userController = {
       }
     }
   },
-  get: async (request, response, next) => {
+  edit: async (request, response, next) => {
+    try {
+      const {
+        name,
+        surname,
+        date_birth,
+        address,
+        country,
+        city,
+        nickname,
+        email,
+        password,
+        avatar,
+        isAdmin,
+        isPremium,
+        isEnable,
+        modify_date_account,
+        ip
+      } = request.body;
+      const { id } = request.params;
+      await userSchema.validateAsync(request.body);
+      if (
+        !name ||
+        !surname ||
+        !date_birth ||
+        !address ||
+        !country ||
+        !city ||
+        !nickname ||
+        !email ||
+        !password ||
+        !avatar ||
+        !isAdmin ||
+        !isPremium ||
+        !isEnable ||
+        !modify_date_account ||
+        !ip
+      ) {
+        helpers.errorGenerator('Please fill all the fields required', 400);
+      }
+      connection = await getConnection();
+      const current = await connection.query(
+        `SELECT name,
+          surname,
+          date_birth,
+          address,
+          country,
+          city,
+          nickname,
+          email,
+          password,
+          avatar,
+          isPremium,
+          isEnable,
+          modify_date_account,
+          ip FROM user WHERE id=:id`,
+        [id]
+      );
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  get: async (request, resolve, next) => {
     try {
       const { id } = request.params;
       connection = await getConnection();
@@ -97,10 +179,13 @@ const userController = {
       ] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
       const [userGetById] = getUser;
       if (!userGetById) {
-        throw errorGenerator(`The user with id ${id} does not exists`, 404);
+        throw helpers.errorGenerator(
+          `The user with id ${id} does not exists`,
+          404
+        );
       }
 
-      response.send({
+      resolve.send({
         status: 200,
         data: getUser,
         message: 'Your user searching was succesfully.'
@@ -113,16 +198,19 @@ const userController = {
       }
     }
   },
-  delete: async (request, response, next) => {
+  delete: async (request, resolve, next) => {
     try {
       const { id } = request.params;
       connection = await getConnection();
+
       const [
         userToDelete
       ] = await connection.query(` DELETE FROM user WHERE id=?`, [id]);
-      console.log(userToDelete);
-
-      response.send({
+      const deletedUser = userToDelete;
+      if (deletedUser.affectedRows === 0) {
+        throw helpers.errorGenerator(`There is no user with id ${id} `, 404);
+      }
+      resolve.send({
         status: 200,
         data: userToDelete,
         message: `User with  id ${id} has been deleted.`
