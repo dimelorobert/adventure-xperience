@@ -6,44 +6,25 @@ USE adventure_db;
 /*//////////////////////////////////////// TABLA USUARIO ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS user ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-<<<<<<< HEAD
 name VARCHAR(30) NOT NULL,
 surname VARCHAR(60) NOT NULL, 
 date_birth DATE NOT NULL,
-=======
-name VARCHAR(30) NOT NULL ,
-surname VARCHAR(60) NOT NULL , 
-date_birth DATE NOT NULL ,
->>>>>>> 552a07f9e6a2466fec1693d7d1f4498eed7db5a1
 country VARCHAR(30),
 city VARCHAR(30), 
 nickname VARCHAR(20) NOT NULL UNIQUE, 
 email VARCHAR(60) NOT NULL UNIQUE,
-<<<<<<< HEAD
 password VARCHAR(100) NOT NULL, 
 avatar VARCHAR(60),
 creation_date TIMESTAMP,
-=======
-password VARCHAR(100) NOT NULL , 
-avatar VARCHAR(60) ,
-creating_date DATETIME,
-ip VARCHAR(20) , -- se puede quitar
->>>>>>> 552a07f9e6a2466fec1693d7d1f4498eed7db5a1
 PRIMARY KEY(id)
 );
 
 /*//////////////////////////////////////// TABLA CATEGORIA ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS category ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-<<<<<<< HEAD
 name VARCHAR(60) NOT NULL,
 image VARCHAR(120) NOT NULL,
 date_creation DATETIME,
-=======
-name VARCHAR(60) NOT NULL ,
-image VARCHAR(120) ,
-date_creation DATETIME NOT NULL,
->>>>>>> 552a07f9e6a2466fec1693d7d1f4498eed7db5a1
 PRIMARY KEY(id)
 );
 /*//////////////////////////////////////// TABLA AVENTURA ///////////////////////////////*/
@@ -132,7 +113,7 @@ DROP TABLE adventures;
 /* Eliminar database`por completo*/
 DROP DATABASE adventure_db;
 /* Eliminar fila en concreto*/
-DELETE FROM user WHERE id = 10;
+DELETE FROM user WHERE id = 5;
 /* Eliminar campos tabla*/
 TRUNCATE TABLE user;
 
