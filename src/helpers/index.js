@@ -7,9 +7,7 @@ const { format } = require('date-fns');
 const crypto = require('crypto');
 const fs = require('fs-extra');
 const uuid = require('uuid');
-const imageUploadPath = path.join(__dirname, `../${process.env.UPLOADS_DIR}`);
-// const os = require('os');
-// const ifaces = os.networkInterfaces();
+
 
 const helpers = {
   formatDateToDB: (date) => {
@@ -28,15 +26,15 @@ const helpers = {
   randomString: (size = 20) => {
     return crypto.randomBytes(size).toString('hex').slice(0, size);
   },
-  processAndSavePhoto: async (uploadedImage) => {
+  processAndSavePhoto: async (fileImage, pathImage) => {
     //Random generated name to save it
     const savedFileName = `${uuid.v1()}.jpg`;
 
     //Ensure path
-    await fs.ensureDir(imageUploadPath);
+    await fs.ensureDir(pathImage);
 
     //Process image
-    const finalImage = sharp(uploadedImage.data);
+    const finalImage = sharp(fileImage.data);
 
     //Make sure image is not wider than 500px
     const imageInfo = await finalImage.metadata();
@@ -45,28 +43,10 @@ const helpers = {
       finalImage.resize(500);
     }
     //Save image
-    await finalImage.toFile(path.join(imageUploadPath, savedFileName));
+    await finalImage.toFile(path.join(pathImage, savedFileName));
 
     return savedFileName;
   }
-  // getIP: () => {
-  //   const ifaces = os.networkInterfaces();
-  //   Object.keys(ifaces).forEach(function (ifname) {
-  //     let alias = 0;
-  //     ifaces[ifname].forEach(function (iface) {
-  //       if ('IPv4' !== iface.family || iface.internal !== false) {
-  //         return;
-  //       }
-
-  //       if (alias >= 1) {
-  //         console.log(ifname + ':' + alias, iface.address);
-  //       } else {
-  //         console.log(iface.address);
-  //       }
-  //       ++alias;
-  //     });
-  //   });
-  // }
 };
 
 module.exports = {

@@ -16,15 +16,6 @@ const categorySchema = Joi.object({
         400
       )
     ),
-  image: Joi.string()
-    .max(500)
-    .required()
-    .error(
-      helpers.errorGenerator(
-        'Please, this field is required and cannot be longer than 500  characters.',
-        400
-      )
-    ),
   date_creation: Joi.date().format('YYYY-MM-DD').utc()
 });
 

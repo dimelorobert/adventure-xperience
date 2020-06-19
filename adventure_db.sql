@@ -22,9 +22,9 @@ PRIMARY KEY(id)
 /*//////////////////////////////////////// TABLA CATEGORIA ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS category ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-name VARCHAR(60) NOT NULL,
+name VARCHAR(60) NOT NULL UNIQUE,
 image VARCHAR(120) NOT NULL,
-date_creation DATETIME,
+creation_date DATETIME,
 PRIMARY KEY(id)
 );
 /*//////////////////////////////////////// TABLA AVENTURA ///////////////////////////////*/
@@ -113,7 +113,7 @@ DROP TABLE adventures;
 /* Eliminar database`por completo*/
 DROP DATABASE adventure_db;
 /* Eliminar fila en concreto*/
-DELETE FROM user WHERE id = 5;
+DELETE FROM user WHERE id = 4;
 /* Eliminar campos tabla*/
 TRUNCATE TABLE user;
 
@@ -155,6 +155,7 @@ INSERT INTO user VALUES( null, 'Miguel Angel',
 /*////////////////////////////////////// CATEGORY EN TABLAS ///////////////////////////////////////////*/
 /* consultar usuarios tabla CATEGORY*/
 SELECT * FROM category;
+DELETE FROM category WHERE id = 5;
 INSERT INTO category VALUES(null, 'Paracaidismo', 'https://img.com/img.jpg','2004-01-29 05:50:06');
 INSERT INTO category VALUES(null, 'Kayak', 'https://img.com/img.jpg','2004-02-4 10:34:16');
 INSERT INTO category VALUES(null, 'Kayak', 'Excursion Kayak en grupo', 'https://img.com/img.jpg','2004-02-4 10:34:16',3);

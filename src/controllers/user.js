@@ -21,9 +21,8 @@ const userController = {
       next(error);
     }
   },
-  signup: async (request, resolve, next) => {
+  signup: async (request, response, next) => {
     try {
-      console.log(request.body);
       await userSchema.validateAsync(request.body);
       const {
         name,
@@ -34,8 +33,7 @@ const userController = {
         nickname,
         email,
         password,
-        avatar,
-        
+        avatar
       } = request.body;
 
       ////// Foto avatar
@@ -55,17 +53,17 @@ const userController = {
       connection = await getConnection();
       // SANITIZAR DATOS
       await connection.query(
-        `INSERT INTO user(
-        name,
-        surname,
-        date_birth,
-        country,
-        city,
-        nickname,
-        email,
-        password,
-        avatar,
-        creation_date) VALUES(?,?,?,?,?,?,?,?,?,?);`,
+        `INSERT INTO user (
+          name,
+          surname,
+          date_birth,
+          country,
+          city,
+          nickname,
+          email,
+          password,
+          avatar,
+          creation_date) VALUES(?,?,?,?,?,?,?,?,?,?);`,
         [
           name,
           surname,
@@ -80,7 +78,7 @@ const userController = {
         ]
       );
 
-      resolve.send({
+      response.send({
         status: 200,
         // almaceno los datos en newUser por si los quiero manipular despues
         data: {
@@ -104,73 +102,8 @@ const userController = {
       }
     }
   },
-  edit: async (request, response, next) => {
-    try {
-      const {
-        name,
-        surname,
-        date_birth,
-        address,
-        country,
-        city,
-        nickname,
-        email,
-        password,
-        avatar,
-        isAdmin,
-        isPremium,
-        isEnable,
-        modify_date_account,
-        ip
-      } = request.body;
-      const { id } = request.params;
-      await userSchema.validateAsync(request.body);
-      if (
-        !name ||
-        !surname ||
-        !date_birth ||
-        !address ||
-        !country ||
-        !city ||
-        !nickname ||
-        !email ||
-        !password ||
-        !avatar ||
-        !isAdmin ||
-        !isPremium ||
-        !isEnable ||
-        !modify_date_account ||
-        !ip
-      ) {
-        helpers.errorGenerator('Please fill all the fields required', 400);
-      }
-      connection = await getConnection();
-      const current = await connection.query(
-        `SELECT name,
-          surname,
-          date_birth,
-          address,
-          country,
-          city,
-          nickname,
-          email,
-          password,
-          avatar,
-          isPremium,
-          isEnable,
-          modify_date_account,
-          ip FROM user WHERE id=:id`,
-        [id]
-      );
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
-  get: async (request, resolve, next) => {
+  edit: async (request, response, next) => {},
+  get: async (request, response, next) => {
     try {
       const { id } = request.params;
       connection = await getConnection();
@@ -185,7 +118,7 @@ const userController = {
         );
       }
 
-      resolve.send({
+      response.send({
         status: 200,
         data: getUser,
         message: 'Your user searching was succesfully.'
@@ -198,7 +131,7 @@ const userController = {
       }
     }
   },
-  delete: async (request, resolve, next) => {
+  delete: async (request, response, next) => {
     try {
       const { id } = request.params;
       connection = await getConnection();
@@ -210,7 +143,7 @@ const userController = {
       if (deletedUser.affectedRows === 0) {
         throw helpers.errorGenerator(`There is no user with id ${id} `, 404);
       }
-      resolve.send({
+      response.send({
         status: 200,
         data: userToDelete,
         message: `User with  id ${id} has been deleted.`
