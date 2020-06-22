@@ -17,6 +17,7 @@ const userController = {
         status: 200,
         data: users
       });
+  
     } catch (error) {
       next(error);
     }
@@ -108,10 +109,10 @@ const userController = {
       const { id } = request.params;
       connection = await getConnection();
       const [
-        getUser
+        result
       ] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
-      const [userGetById] = getUser;
-      if (!userGetById) {
+      const [userResult] = result;
+      if (!result) {
         throw helpers.errorGenerator(
           `The user with id ${id} does not exists`,
           404
@@ -120,7 +121,7 @@ const userController = {
 
       response.send({
         status: 200,
-        data: getUser,
+        data: userResult,
         message: 'Your user searching was succesfully.'
       });
     } catch (error) {
