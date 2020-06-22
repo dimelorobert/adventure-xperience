@@ -8,10 +8,6 @@ const crypto = require('crypto');
 const fs = require('fs-extra');
 const uuid = require('uuid');
 
-
-
-
-
 const helpers = {
   formatDateToDB: (date) => {
     return format(date, `yyyy-MM-dd HH:mm:ss`); 
@@ -52,7 +48,13 @@ const helpers = {
     return savedFileName;
   },
   deletePhoto: async (pathImage,fileImage) => {
-    await fs.unlink(path.join(pathImage,fileImage));
+      try { 
+        await fs.unlink(path.join(pathImage,fileImage));
+      }
+      catch (error) {
+        return error;
+      }
+    
   }
   
 };

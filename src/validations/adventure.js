@@ -9,7 +9,7 @@ const adventureSchema = Joi.object({
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the name field is required and cannot be longer than 30 characters.',
+        'El campo nombre es requerido por tanto no puede ir vacio ni exceder max de 30 caracteres',
         400
       )
     ),
@@ -19,40 +19,35 @@ const adventureSchema = Joi.object({
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the description field is required and cannot be longer than 500 characters.',
+        'El campo Descripción es requerido por tanto no puede ir vacio ni exceder max de 500 caracteres',
         400
       )
     ),
-  image: Joi.string()
-    .max(50)
-    .required()
-    .error(
-      helpers.errorGenerator(
-        'Please, insert the image url in this field and cannot be longer than 50 characters,in the otherwise use shortlinks',
-        400
-      )
-    ),
-  video: Joi.string().uri().trim(),
   price: Joi.number()
     .positive()
     .precision(2)
     .required()
     .max(99999)
-    .error(helpers.errorGenerator(`You must type a valid price. ex: 99.99`, 400)),
+    .error(helpers.errorGenerator(`Introduce un formato de precio valido ej: 99.99`, 400)),
   country: Joi.string()
     .max(30)
     .required()
-    .error(helpers.errorGenerator('Please, fill with a valid country.', 400)),
+    .error(helpers.errorGenerator('Por favor rellena este campo con un país valido.', 400)),
   city: Joi.string()
     .max(30)
     .required()
-    .error(helpers.errorGenerator('Please, fill with a valid city.', 400)),
+    .error(helpers.errorGenerator('Por favor rellena este campo con una ciudad valida.', 400)),
   vacancy: Joi.number()
     .positive()
-    .precision(2)
-    .max(999999)
+    .max(100)
     .required()
-    .error(helpers.errorGenerator(`You must type a valid price. ex: 99.99`, 400)),
+    .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
+  isAvailable: Joi.string()
+  .max(20)
+  .required()
+  .error(helpers.errorGenerator('Este campo no puede ir vacio, Por favor selecciona una opcion valida para este campo', 400)),
+  creation_date: Joi.date().format('YYYY-MM-DD').utc(),
+  modify_date: Joi.date().format('YYYY-MM-DD').utc(),
   date_selected: Joi.date().format('YYYY-MM-DD').utc()
 });
 

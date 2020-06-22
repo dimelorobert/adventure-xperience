@@ -18,7 +18,9 @@ const reviewSchema = Joi.object({
         400
       )
     ),
-  date_post: Joi.date().format('YYYY-MM-DD').utc()
+  date_post: Joi.date().format('YYYY-MM-DD').utc(),
+  ip: Joi.string()
+  .max(50)
 });
 
 module.exports = { reviewSchema };

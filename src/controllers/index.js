@@ -3,5 +3,6 @@
 const { userController } = require('./user');
 const { adventureController } = require('./adventure');
 const { categoryController } = require('./category');
+const { reviewController } = require('./review')
 
-module.exports = { userController, adventureController, categoryController };
+module.exports = { userController, categoryController, adventureController, reviewController };

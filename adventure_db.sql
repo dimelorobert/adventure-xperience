@@ -18,13 +18,13 @@ avatar VARCHAR(60),
 creation_date TIMESTAMP,
 PRIMARY KEY(id)
 );
-
 /*//////////////////////////////////////// TABLA CATEGORIA ///////////////////////////////*/
 CREATE TABLE IF NOT EXISTS category ( 
 id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(60) NOT NULL UNIQUE,
-image VARCHAR(120) NOT NULL,
+image VARCHAR(120),
 creation_date DATETIME,
+modify_date DATETIME,
 PRIMARY KEY(id)
 );
 /*//////////////////////////////////////// TABLA AVENTURA ///////////////////////////////*/
@@ -33,13 +33,14 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT,
 name VARCHAR(60) NOT NULL ,
 description VARCHAR(500) NOT NULL,
 image VARCHAR(120) ,
-video VARCHAR(120),
 price DECIMAL(5,2) ,
 country VARCHAR(60) NOT NULL ,
 city VARCHAR(60) NOT NULL ,
-vacancy INT NOT NULL DEFAULT 10, 
-available BOOLEAN ,
-date_selected DATETIME NOT NULL,
+vacancy INT NOT NULL, 
+isAvailable ENUM("Disponible","No Disponible"),
+creation_date DATETIME,
+modify_date DATETIME,
+date_selected DATETIME,
 category_id INT UNSIGNED , 
 FOREIGN KEY fk_category_id (category_id) REFERENCES category(id) , 
 PRIMARY KEY(id)
@@ -73,6 +74,7 @@ id INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 points INT NOT NULL ,
 comments VARCHAR(500) ,
 date_post DATETIME NOT NULL , 
+ip VARCHAR(100),
 user_id INT UNSIGNED ,
 adventure_id INT UNSIGNED ,   
 FOREIGN KEY fk_user_id (user_id) REFERENCES user(id) ,
@@ -155,15 +157,16 @@ INSERT INTO user VALUES( null, 'Miguel Angel',
 /*////////////////////////////////////// CATEGORY EN TABLAS ///////////////////////////////////////////*/
 /* consultar usuarios tabla CATEGORY*/
 SELECT * FROM category;
-DELETE FROM category WHERE id = 5;
-INSERT INTO category VALUES(null, 'Paracaidismo', 'https://img.com/img.jpg','2004-01-29 05:50:06');
+TRUNCATE TABLE category;
+DELETE FROM category WHERE id = 4;
+INSERT INTO category VALUES(null, 'Paracaidismo', 'https://img.com/img.jpg','2004-01-29 05:50:06','2004-01-29 09:50:06');
 INSERT INTO category VALUES(null, 'Kayak', 'https://img.com/img.jpg','2004-02-4 10:34:16');
 INSERT INTO category VALUES(null, 'Kayak', 'Excursion Kayak en grupo', 'https://img.com/img.jpg','2004-02-4 10:34:16',3);
 INSERT INTO category VALUES(null, 'Buceo', 'Excursion Buceo en grupo', 'https://img.com/img.jpg','2005-09-16 07:04:06',2);
 
 /*////////////////////////////////////// AVENTURAS EN TABLAS ///////////////////////////////////////////*/
 /* consultar usuarios tabla ADVENTURES*/
-SELECT * FROM adventures;
+SELECT * FROM adventure;
 INSERT INTO adventure VALUES(null, 'Paracaidismo', 'Excursion Paracaidas en grupo', 
 'https://img.com/img.jpg',50.95,'España', 'Valencia', 5,'2020-01-15 16:30:22',3,1);
 INSERT INTO adventure VALUES(null, 'Kayak', 'Excursion Kayak en grupo', 'https://img.com/img.jpg', 49.50, 'España', 'Alicante', 3, '2004-02-4 10:34:16',1,2);

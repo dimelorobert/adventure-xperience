@@ -16,7 +16,6 @@ app.use(morgan('dev'));
 app.use(cors());
 
 /////////////////// MIDDLEWARES //////////////////////////
-// Body Parser transforma el json que recibe en estructura de peticion automaticamente
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,7 +31,11 @@ app.use((error, request, response, next) => {
 
 // Middleware not found
 app.use((request, response) => {
-  response.status(404).send({ message: '❌ Page not found!😢' });
+  response.status(404).send({ 
+    status: 'error',
+    code: 404,
+    message: '❌ Page not found!😢' 
+  });
 });
 
 //////////////// SERVER //////////////////////

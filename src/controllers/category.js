@@ -5,7 +5,6 @@ const { getConnection } = require('../database');
 const {categorySchema} = require('../validations');
 const { helpers } = require('../helpers');
 const path = require('path');
-const category = require('../validations/category');
 let dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
 let categoryImagePath = path.join(__dirname, `../${process.env.CATEGORY_UPLOADS_DIR}`);
@@ -15,42 +14,39 @@ const categoryController = {
   new: async (request, response, next) => {
     try {
       await categorySchema.validateAsync(request.body);
-
       const {name, image} = request.body;
-
+      connection = await getConnection();
       let savedFileName;
+
       if (request.files && request.files.image) {
         try {
           let uploadImageBody = request.files.image;
           savedFileName = await helpers.processAndSavePhoto(categoryImagePath,uploadImageBody);
         } catch (error) {
-          throw helpers.errorGenerator(
-            'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo',
-            400
-          );
+          return response.status(400).json({
+            status: 'error',
+            code: 400,
+            error:'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'});     
         }
       }
-      connection = await getConnection();
-      await connection.query(`
+      
+      const [result] = await connection.query(`
         INSERT INTO category(name, image, creation_date) 
         VALUES(?, ?, ?);`,[name, savedFileName, dateNow]);
+
         response.send({
           status: 200,
-          // almaceno los datos en newcategory por si los quiero manipular despues en front
           data: {
+            id: result.insertId,
             name,
             image: savedFileName,
             creation_date: creating_date
           },
-          message: 'La categoria fue creada exitosamente'
+          message: `La categoria con el id ${result.insertId}fue creada exitosamente`
         });
 
     } catch (error) {
-      /* response.status(500).json({
-        message:'Ha ocurrido un error ,la categoria con ese nombre ya existe,por favor intentalo con otro nombre'
-      }); */
       next(error);
-      
     } finally {
       if (connection) {
         connection.release();
@@ -63,16 +59,16 @@ const categoryController = {
       connection = await getConnection();
       const [result] = await connection.query(`SELECT * FROM category WHERE id = ?`, [id]);
       if (!result.length) {
-        throw helpers.errorGenerator(
-          `La categoria con el id ${id} no existe`,
-          404
-        );
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error:`La categoria con id ${id} no existe,por favor intentalo de nuevo`});
       }
       const [categoryResult] = result;
       response.send({
         status: 200,
         data: categoryResult,
-        message: 'La busqueda fue realizada con exito'
+        message: `La busqueda de la categoria con el id ${categoryResult.id} fue realizada con exito`
       });
     } catch (error) {
       next(error);
@@ -87,13 +83,15 @@ const categoryController = {
       connection = await getConnection();
       const [result] = await connection.query(`SELECT * FROM category;`);
       if (!result.length) {
-        response.status(404).json({
+        return response.status(404).json({
           status: 'error',
+          code: 400,
           error:`No hay categorias para mostrar aún`});
       } else {
         response.send({
           status: 200,
-          data: result
+          data: result,
+          message: 'Lista de todas las categorias creadas'
         });
       }
     } catch (error) {
@@ -112,7 +110,11 @@ const categoryController = {
       const [current] = await connection.query('SELECT image FROM category WHERE id=?', [id]);
 
       if(!current.length) {
-        throw helpers.errorGenerator(`La categoria con el id ${id} no existe`,400);
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error:`La categoria con el id ${id} no existe`});
+        
       };
       if(current[0].image) {
         await helpers.deletePhoto(categoryImagePath, current[0].image);
@@ -124,9 +126,10 @@ const categoryController = {
         try { 
           savedFileName = await helpers.processAndSavePhoto(categoryImagePath,request.files.image);
         } catch (error) {
-          throw helpers.errorGenerator(
-            'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo',
-            400);
+          return response.status(400).json({
+            status: 'error',
+            code: 400,
+            error:'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'});     
         }
       } 
       else {
@@ -140,7 +143,7 @@ const categoryController = {
           id,
           name,
           image: savedFileName,
-          modify_date: dateNow,
+          modify_date: creating_date,
         },
         message: 'La categoria fue modificada satisfactoriamente'
       });
@@ -161,7 +164,7 @@ const categoryController = {
       
       
       if(!result.length) {
-        response.status(404).json({
+        return response.status(404).json({
           status: 'error',
           error:`La categoria con el id ${id} no existe`});
       }; 
@@ -169,15 +172,15 @@ const categoryController = {
       if(result && result[0].image) {
         await helpers.deletePhoto(categoryImagePath, result[0].image);
       } else {
-        response.status(404).json({
+        return response.status(400).json({
           status: 'error',
-          error:`La foto de la categoria con id ${id} no se pudo procesar`});
+          code: 400,
+          error:`La foto de la categoria con id ${id} no se pudo procesar correctamente`});
       }
 
       await connection.query(` DELETE FROM category WHERE id=?`, [id]);
       response.send({
         status: 200,
-        data: result,
         message: `La categoria con id ${id} ha sido borrada satisfactoriamente `
       });
       
