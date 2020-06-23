@@ -48,7 +48,7 @@ const adventureController = {
             isAvailable,
             creation_date : creating_date
           },
-          message: `La aventura con el id ${result.insertId}fue creada exitosamente`
+          message: `La aventura con el id ${result.insertId} fue creada exitosamente`
         });
 
     } catch (error) {

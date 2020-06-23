@@ -42,7 +42,7 @@ const categoryController = {
             image: savedFileName,
             creation_date: creating_date
           },
-          message: `La categoria con el id ${result.insertId}fue creada exitosamente`
+          message: `La categoria con el id ${result.insertId} fue creada exitosamente`
         });
 
     } catch (error) {
