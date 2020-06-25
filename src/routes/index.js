@@ -11,7 +11,7 @@ const router = routerx();
 router.use('/user', userRouter);
 router.use('/category', categoryRouter);
 router.use('/adventure', adventureRouter);
-//router.use('/adventure/:id/review', reviewRouter);
+router.use('/review', reviewRouter);
 
 
 module.exports = router;

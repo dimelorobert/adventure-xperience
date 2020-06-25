@@ -6,6 +6,7 @@ const { userSchema } = require('../validations');
 const { helpers } = require('../helpers');
 const path = require('path');
 const { date } = require('@hapi/joi');
+
 let dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
 let userImagePath = path.join(__dirname, `../${process.env.USER_UPLOADS_DIR}`);
@@ -33,8 +34,8 @@ const userController = {
       }
       
       const [result] = await connection.query(`
-        INSERT INTO user(name, surname, date_birth, country, city, nickname, email, password, image, creation_date) 
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,[name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow]);
+        INSERT INTO user(name, surname, date_birth, country, city, nickname, email, password, image, creation_date, ip) 
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,[name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow, request.ip]);
 
         response.send({ 
           status: 200,
@@ -49,11 +50,11 @@ const userController = {
             email, 
             password, 
             image: savedFileName,
-            creation_date : creating_date
+            creation_date : creating_date,
+            ip : request.ip
           },
           message: `El usuario con el id ${result.insertId} fue creado con exito`
         });
-
     } catch (error) {
       next(error);
     } finally {
@@ -72,13 +73,13 @@ const userController = {
           status: 'error',
           code: 400,
           error:`El usuario con el id ${id} no existe,por favor intentalo de nuevo`});
-      }
+      } else {
       const [userResult] = result;
       response.send({
         status: 200,
         data: userResult,
         message: `La busqueda del usuario con el id ${userResult.id} fue realizada con exito`
-      });
+      });}
     } catch (error) {
       next(error);
     } finally {
@@ -105,16 +106,18 @@ const userController = {
       }
     } catch (error) {
       next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
     }
   },
   update: async (request, response, next) => {
     try {
-      const {name, surname, date_birth, country, city, nickname, email, password, image} = request.body;
-
-      const {id} = request.params;
-
       await userSchema.validateAsync(request.body);
-
+      const {name, surname, date_birth, country, city, nickname, email, password, image} = request.body;
+      const {id} = request.params;
+      
       connection = await getConnection();
       const [current] = await connection.query('SELECT image FROM user WHERE id=?', [id]);
 
@@ -144,7 +147,7 @@ const userController = {
       else {
         savedFileName = current.image;
       }
-      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, nickname=?, email=?, password=?, image=?, modify_date=? WHERE id=?`,[name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow, id]);
+      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, nickname=?, email=?, password=?, image=?, modify_date=?, ip=? WHERE id=?`,[name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow, request.ip, id]);
       
       response.send({
         status: 200,
@@ -160,6 +163,7 @@ const userController = {
           password, 
           image: savedFileName,
           modify_date : creating_date,
+          ip: request.ip
         },
         message: `El usuario con el id ${id} fue modificada satisfactoriamente`
       });

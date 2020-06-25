@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon ./src/server"
+    "start": "nodemon ./src/server",
+    "initdb" : "node ./src/initDatabase.js"
   },
   "repository": {
     "type": "git",

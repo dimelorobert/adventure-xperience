@@ -59,6 +59,7 @@ const userSchema = Joi.object().keys({
       )
     ),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
+  ip: Joi.string().max(50)
 });
 
 module.exports = {
