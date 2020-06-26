@@ -99,8 +99,8 @@ const adventureController = {
             response.send({
                status: 200,
                data: {
-                  ...adventureResult,
-                  averageReviews: reviews || 0
+                  adventureResult,
+                  averageReviews: reviews[0] || 0
                },
                message: `La busqueda de la aventura con el id ${adventureResult.id} fue realizada con exito`
             });

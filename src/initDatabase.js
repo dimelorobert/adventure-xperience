@@ -1,9 +1,11 @@
 'use strict';
 
+require('dotenv').config();
 const {
   getConnection
 } = require('./database');
 const args = process.argv;
+const bcrypt = require('bcrypt');
 const dataDB = (args[2] === '--data');
 let connection;
 
@@ -12,6 +14,20 @@ let connection;
 async function main() {
   try {
     connection = await getConnection();
+
+    /*console.log('Dropping tables');
+    await connection.query(`DROP TABLE IF EXISTS invoice`);
+    await connection.query(`DROP TABLE IF EXISTS review`);
+    await connection.query(`DROP TABLE IF EXISTS chat`);
+    await connection.query(`DROP TABLE IF EXISTS cart`);
+    await connection.query(`DROP TABLE IF EXISTS adventure`);
+    await connection.query(`DROP TABLE IF EXISTS category`);
+    await connection.query(`DROP TABLE IF EXISTS user`);*/
+
+
+
+
+
 
 
     await connection.query(`CREATE TABLE IF NOT EXISTS user ( 
@@ -23,13 +39,17 @@ async function main() {
       city VARCHAR(30), 
       nickname VARCHAR(20) NOT NULL UNIQUE, 
       email VARCHAR(60) NOT NULL UNIQUE,
-      password VARCHAR(100) NOT NULL, 
+      password VARCHAR(100) NOT NULL,
+      last_password_update  TIMESTAMP,
       image VARCHAR(60),
+      role ENUM('admin','user') DEFAULT 'user' NOT NULL,
       creation_date TIMESTAMP,
       modify_date TIMESTAMP,
       ip VARCHAR(50),
+      reg_code VARCHAR(255),
+      active BOOLEAN DEFAULT false NOT NULL,
       PRIMARY KEY(id)
-      );
+    );
     `);
     console.log('Creada la tabla user');
 
@@ -125,50 +145,28 @@ async function main() {
     console.log('Creada tabla invoice');
 
 
-    if (dataDB) {
-      await connection.query(`INSERT INTO user VALUES( null,'Ana', 
-        'Verdeal', 
-        '1995-09-09', 
-        'España', 
-        'Alicante',
-        'lilMileG',
-        'anav@hotmail.com', 
-        '123AnV.',
-        'https://img.com/avatar.jpg',
-        '2020-01-10 17:30:00'
-        );`);
-      await connection.query(`INSERT INTO user VALUES ( null, 'Robert', 
-        'Hernandez', 
-        '1990-04-06', 
-        'España',
-        'A Coruña',
-        'DimeloRobert', 
-        'robert@mail.com', 
-        'rbt845.', 
-        'https://img.com/avatar.jpg',
-        '2020-01-29 05:50:06');`);
-      await connection.query(`INSERT INTO user VALUES( null, 'Miguel Angel', 
-        'Duque', 
-        '1999-06-07', 
-        'España', 
-        'Valencia',
-        'duquecito7',
-        'duquecito7@yahoo.com', 
-        'Duquecito123',
-        'https://img.com/avatar.jpg',
-        '2020-06-30 17:30:00');`);
-      console.log('Usuarios default integrados');
+    console.log('Addinng admin user');
+    const password = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+    await connection.query(`INSERT INTO user VALUES (
+      NULL , 
+      'Robert', 
+      'Hernandez', 
+      '1990-04-06', 
+      'España',
+      'A Coruña',
+      'DimeloRobert', 
+      'airbusjayrobert@gmail.com', 
+      '${password}', 
+      NULL,
+      'https://img.com/avatar.jpg',
+      'admin',
+      NOW(),
+      NULL,
+      NULL,
+      NULL,
+      true);
+    `);
 
-      await connection.query(`INSERT INTO category VALUES(null, 'Relax Time', 'https://img.com/img.jpg','2004-01-29 05:50:06','2004-01-29 09:50:06');`);
-      await connection.query(`INSERT INTO category VALUES(null, 'Aventuras en la Montaña', 'https://img.com/img.jpg','2004-02-4 10:34:16');`);
-      await connection.query(`INSERT INTO category VALUES(null, 'Aventuras Acuaticas', 'https://img.com/img.jpg','2004-02-4 10:34:16',3);`);
-      console.log('Categorias default integradas');
-
-      await connection.query(``);
-      await connection.query(``);
-      await connection.query(``);
-      console.log('Aventuras default integradas');
-    }
     console.log('✅✅✅ Estructura de base de datos creada exitosamente ✅✅');
     console.log('>>>>>> 🔥🔥🔥 Database Working 100% 🔥🔥🔥 <<<<<<');
 

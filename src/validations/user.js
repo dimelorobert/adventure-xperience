@@ -44,6 +44,7 @@ const userSchema = Joi.object().keys({
         400
       )
     ),
+  role: Joi.string(),
   email: Joi.string()
     .email()
     .required()
