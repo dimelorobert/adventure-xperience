@@ -1,6 +1,10 @@
 'use strict';
 
 // Modulos Requeridos
+require('dotenv').config();
+const {
+  SECRET_KEY
+} = process.env;
 const {
   getConnection
 } = require('../database');
@@ -8,14 +12,21 @@ const {
   userSchema
 } = require('../validations');
 const {
+  loginSchema
+} = require('../validations');
+const {
   helpers
 } = require('../helpers');
 const path = require('path');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const {
   date
 } = require('@hapi/joi');
-
-let dateNow = helpers.formatDateToDB(new Date());
+const {
+  getToken
+} = require('../services/token.js');
+const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
 let userImagePath = path.join(__dirname, `../${process.env.USER_UPLOADS_DIR}`);
 
@@ -34,11 +45,14 @@ const userController = {
         nickname,
         email,
         password,
-        image
+        image,
+        role
       } = request.body;
       connection = await getConnection();
-      let savedFileName;
 
+      const passwordDB = await bcrypt.hash(password, 10);
+
+      let savedFileName;
       if (request.files && request.files.image) {
         try {
           let uploadImageBody = request.files.image;
@@ -52,9 +66,19 @@ const userController = {
         }
       }
 
+      const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
+      if (existingEmail.length) {
+        return response.status(409).json({
+          status: 'error',
+          code: 409,
+          error: `El email ${email} que has introducido ya esta registrado`
+        });
+      }
+
+      //let roleUser = 'admin';
       const [result] = await connection.query(`
-        INSERT INTO user(name, surname, date_birth, country, city, nickname, email, password, image, creation_date, ip) 
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow, request.ip]);
+        INSERT INTO user(name, surname, date_birth, country, city, nickname, email, role, password, image, creation_date, ip) 
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, nickname, email, role, passwordDB, savedFileName, dateNow, request.ip]);
 
       response.send({
         status: 200,
@@ -67,8 +91,9 @@ const userController = {
           city,
           nickname,
           email,
-          password,
+          passwordDB,
           image: savedFileName,
+          role,
           creation_date: creating_date,
           ip: request.ip
         },
@@ -155,6 +180,7 @@ const userController = {
       } = request.params;
 
       connection = await getConnection();
+      const passwordDB = await bcrypt.hash(password, 10);
       const [current] = await connection.query('SELECT image FROM user WHERE id=?', [id]);
 
       if (!current.length) {
@@ -184,7 +210,7 @@ const userController = {
       } else {
         savedFileName = current.image;
       }
-      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, nickname=?, email=?, password=?, image=?, modify_date=?, ip=? WHERE id=?`, [name, surname, date_birth, country, city, nickname, email, password, savedFileName, dateNow, request.ip, id]);
+      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, nickname=?, email=?, password=?, image=?, modify_date=?, ip=? WHERE id=?`, [name, surname, date_birth, country, city, nickname, email, passwordDB, savedFileName, dateNow, request.ip, id]);
 
       response.send({
         status: 200,
@@ -197,7 +223,7 @@ const userController = {
           city,
           nickname,
           email,
-          password,
+          passwordDB,
           image: savedFileName,
           modify_date: creating_date,
           ip: request.ip
@@ -232,6 +258,7 @@ const userController = {
       if (result && result[0].image) {
         await helpers.deletePhoto(userImagePath, result[0].image);
       } else {
+        await helpers.deletePhoto(userImagePath, result[0].image);
         return response.status(400).json({
           status: 'error',
           code: 400,
@@ -253,31 +280,40 @@ const userController = {
       }
     }
   },
-  activate: async (request, response, next) => {
-    try {
-
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
-  deactivate: async (request, response, next) => {
-    try {
-
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
   login: async (request, response, next) => {
     try {
+      const {
+        email,
+        password
+      } = request.body;
+      connection = await getConnection();
+      const [userEmailDB] = await connection.query(`SELECT id, name, surname, date_birth, country, city, email, password, image, role, ip FROM user WHERE email=?`, [email]);
 
+      if (userEmailDB[0]) {
+        const passwordMatch = await bcrypt.compare(password, userEmailDB[0].password);
+
+        if (passwordMatch) {
+          let tokenReturn = await getToken.encode(userEmailDB[0].id);
+          console.log(tokenReturn);
+          return response.status(200).json({
+            userEmailDB,
+            tokenReturn,
+            message: `Bienvenido ${userEmailDB[0].name} te has logeado con éxito`,
+          })
+        } else {
+          return response.status(401).json({
+            status: 'error',
+            code: 401,
+            error: `Contraseña incorrecta`
+          });
+        }
+      } else {
+        return response.status(404).json({
+          status: 'error',
+          code: 404,
+          error: `El usuario con el email especificado no existe`
+        });
+      }
     } catch (error) {
       next(error);
     } finally {
@@ -285,7 +321,8 @@ const userController = {
         connection.release();
       }
     }
-  }
+  },
+
 };
 
 module.exports = {

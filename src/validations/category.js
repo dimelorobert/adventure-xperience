@@ -10,6 +10,7 @@ const categorySchema = Joi.object({
     .min(3)
     .max(60)
     .required()
+    .trim()
     .error(
       helpers.errorGenerator(
         'Please, this field is required and cannot be longer than 60 characters.',

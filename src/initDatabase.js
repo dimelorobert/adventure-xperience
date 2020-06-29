@@ -6,7 +6,7 @@ const {
 } = require('./database');
 const args = process.argv;
 const bcrypt = require('bcrypt');
-const dataDB = (args[2] === '--data');
+//const dataDB = (args[2] === '--data');
 let connection;
 
 
@@ -160,7 +160,7 @@ async function main() {
       NULL,
       'https://img.com/avatar.jpg',
       'admin',
-      NOW(),
+      CURRENT TIMESTAMP(),
       NULL,
       NULL,
       NULL,

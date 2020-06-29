@@ -99,7 +99,7 @@ const adventureController = {
             response.send({
                status: 200,
                data: {
-                  adventureResult,
+                  ...adventureResult,
                   averageReviews: reviews[0] || 0
                },
                message: `La busqueda de la aventura con el id ${adventureResult.id} fue realizada con exito`
@@ -235,11 +235,12 @@ const adventureController = {
             return response.status(400).json({
                status: 'error',
                code: 400,
-               error: `La foto de la aventura con id ${id} no se pudo procesar correctamente`
+               error: `La foto de la aventura con el id ${id} no se pudo procesar correctamente`
             });
          }
 
-         await connection.query(` DELETE FROM review WHERE adventure_id=?`, [id]);
+
+         //await connection.query(` DELETE points FROM review WHERE adventure_id=?`, [id]);
          await connection.query(` DELETE FROM adventure WHERE id=?`, [id]);
 
          response.send({

@@ -9,6 +9,7 @@ const adventureSchema = Joi.object({
     .min(3)
     .max(30)
     .required()
+    .trim()
     .error(
       helpers.errorGenerator(
         'El campo nombre es requerido por tanto no puede ir vacio ni exceder max de 30 caracteres',
@@ -40,6 +41,8 @@ const adventureSchema = Joi.object({
     .required()
     .error(helpers.errorGenerator('Por favor rellena este campo con una ciudad valida.', 400)),
   vacancy: Joi.number()
+    .min(2)
+    .max(10)
     .positive()
     .required()
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),

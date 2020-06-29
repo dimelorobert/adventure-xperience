@@ -2,7 +2,9 @@
 
 const Joi = require('@hapi/joi').extend(require('@hapi/joi-date'));
 const JoiAge = Joi.extend(require('joi-age'));
-const { helpers } = require('../helpers');
+const {
+  helpers
+} = require('../helpers');
 
 const userSchema = Joi.object().keys({
   name: Joi.string()
@@ -11,7 +13,7 @@ const userSchema = Joi.object().keys({
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the name field is required and cannot be longer than 30 characters.',
+        'El campo nombre es obligatorio y no puede exceder mas de 30 caracteres',
         400
       )
     ),
@@ -21,26 +23,26 @@ const userSchema = Joi.object().keys({
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the surname field is required and cannot be longer than 60 characters.',
+        'El campo nombre es obligatorio y no puede exceder mas de 60 caracteres.',
         400
       )
     ),
-  date_birth: JoiAge.date().required(),
+  date_birth: JoiAge.date().required().error(helpers.errorGenerator('Introduce tu fecha de nacimiento', 400)),
   country: Joi.string()
     .max(30)
     .required()
-    .error(helpers.errorGenerator('Please, fill with a valid country.', 400)),
+    .error(helpers.errorGenerator('El campo país es obligatorio, introduce un país', 400)),
   city: Joi.string()
     .max(30)
     .required()
-    .error(helpers.errorGenerator('Please, fill with a valid city.', 400)),
+    .error(helpers.errorGenerator('El campo ciudad es obligatorio, introduce un ciudad', 400)),
   nickname: Joi.string()
     .min(3)
     .max(20)
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the nickname field is required and cannot be longer than 20 characters.',
+        'El campo nickname es obligatorio y no puede exceder más de 20 caracteres',
         400
       )
     ),
@@ -48,14 +50,14 @@ const userSchema = Joi.object().keys({
   email: Joi.string()
     .email()
     .required()
-    .error(helpers.errorGenerator('please, Insert a valid email.', 400)),
+    .error(helpers.errorGenerator('El campo email es obligatorio', 400)),
   password: Joi.string()
     .min(3)
     .max(16)
     .required()
     .error(
       helpers.errorGenerator(
-        'Please, the password field is required and cannot be longer than 16 characters.',
+        'El campo password es obligatorio y no debe exceder más de 16 caracteres',
         400
       )
     ),
