@@ -27,7 +27,7 @@ const helpers = {
   randomString: (size = 20) => {
     return crypto.randomBytes(size).toString('hex').slice(0, size);
   },
-  processAndSavePhoto: async (pathImage, fileImage) => {
+  processAndSavePhoto: async (pathImage, fileImage, imageWidth = 500, imageHeight = 300) => {
     //Random generated name to save it
     const savedFileName = `${uuid.v1()}.jpg`;
 
@@ -40,8 +40,8 @@ const helpers = {
     //Make sure image is not wider than 500px
     const imageInfo = await finalImage.metadata();
 
-    if (imageInfo.width > 500 && imageInfo.height > 350) {
-      finalImage.resize(500, 350);
+    if (imageInfo.width > imageWidth && imageInfo.height > imageHeight) {
+      finalImage.resize(imageWidth, imageHeight);
     }
     //Save image
     await finalImage.toFile(path.join(pathImage, savedFileName));

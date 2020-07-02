@@ -18,7 +18,7 @@ async function checkToken(token) {
    try {
       const {
          _id
-      } = await jwt.decode(token);
+      } = jwt.decode(token);
       __id = _id;
    } catch (error) {
       return false;

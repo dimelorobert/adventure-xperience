@@ -8,24 +8,17 @@ const {
 const {
   getConnection
 } = require('../database');
+const jwt = require('jsonwebtoken');
 const {
-  userSchema
-} = require('../validations');
-const {
-  loginSchema
+  userSchema,
+  loginSchema,
+  newPasswordSchema
 } = require('../validations');
 const {
   helpers
 } = require('../helpers');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const {
-  date
-} = require('@hapi/joi');
-const {
-  getToken
-} = require('../services/token.js');
 const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
 let userImagePath = path.join(__dirname, `../${process.env.USER_UPLOADS_DIR}`);
@@ -33,7 +26,7 @@ let userImagePath = path.join(__dirname, `../${process.env.USER_UPLOADS_DIR}`);
 let connection;
 
 const userController = {
-  new: async (request, response, next) => {
+  signup: async (request, response, next) => {
     try {
       await userSchema.validateAsync(request.body);
       const {
@@ -42,7 +35,6 @@ const userController = {
         date_birth,
         country,
         city,
-        nickname,
         email,
         password,
         image,
@@ -56,7 +48,7 @@ const userController = {
       if (request.files && request.files.image) {
         try {
           let uploadImageBody = request.files.image;
-          savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody);
+          savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
         } catch (error) {
           return response.status(400).json({
             status: 'error',
@@ -77,8 +69,8 @@ const userController = {
 
       //let roleUser = 'admin';
       const [result] = await connection.query(`
-        INSERT INTO user(name, surname, date_birth, country, city, nickname, email, role, password, image, creation_date, ip) 
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, nickname, email, role, passwordDB, savedFileName, dateNow, request.ip]);
+        INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip]);
 
       response.send({
         status: 200,
@@ -89,9 +81,9 @@ const userController = {
           date_birth,
           country,
           city,
-          nickname,
           email,
           passwordDB,
+          last_password_update: dateNow,
           image: savedFileName,
           role,
           creation_date: creating_date,
@@ -170,7 +162,6 @@ const userController = {
         date_birth,
         country,
         city,
-        nickname,
         email,
         password,
         image
@@ -210,7 +201,7 @@ const userController = {
       } else {
         savedFileName = current.image;
       }
-      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, nickname=?, email=?, password=?, image=?, modify_date=?, ip=? WHERE id=?`, [name, surname, date_birth, country, city, nickname, email, passwordDB, savedFileName, dateNow, request.ip, id]);
+      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, email=?, password=?,last_password_update=? ,image=?, modify_date=?, ip=? WHERE id=?`, [name, surname, date_birth, country, city, email, passwordDB, dateNow, savedFileName, dateNow, request.ip, id]);
 
       response.send({
         status: 200,
@@ -221,9 +212,9 @@ const userController = {
           date_birth,
           country,
           city,
-          nickname,
           email,
           passwordDB,
+          last_password_update: dateNow,
           image: savedFileName,
           modify_date: creating_date,
           ip: request.ip
@@ -238,6 +229,7 @@ const userController = {
       }
     }
   },
+
   delete: async (request, response, next) => {
     try {
       const {
@@ -282,6 +274,7 @@ const userController = {
   },
   login: async (request, response, next) => {
     try {
+      await loginSchema.validateAsync(request.body);
       const {
         email,
         password
@@ -289,31 +282,41 @@ const userController = {
       connection = await getConnection();
       const [userEmailDB] = await connection.query(`SELECT id, name, surname, date_birth, country, city, email, password, image, role, ip FROM user WHERE email=?`, [email]);
 
-      if (userEmailDB[0]) {
-        const passwordMatch = await bcrypt.compare(password, userEmailDB[0].password);
-
-        if (passwordMatch) {
-          let tokenReturn = await getToken.encode(userEmailDB[0].id);
-          console.log(tokenReturn);
-          return response.status(200).json({
-            userEmailDB,
-            tokenReturn,
-            message: `Bienvenido ${userEmailDB[0].name} te has logeado con éxito`,
-          })
-        } else {
-          return response.status(401).json({
-            status: 'error',
-            code: 401,
-            error: `Contraseña incorrecta`
-          });
-        }
-      } else {
-        return response.status(404).json({
+      if (!userEmailDB.length) {
+        return response.status(401).json({
           status: 'error',
-          code: 404,
+          code: 401,
           error: `El usuario con el email especificado no existe`
         });
       }
+      const [user] = userEmailDB;
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: `Contraseña incorrecta`
+        });
+      }
+      const tokenPayload = {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      };
+      const token = jwt.sign({
+        tokenPayload
+      }, SECRET_KEY, {
+        expiresIn: '30d'
+      });
+      return response.status(200).json({
+        data: {
+          user,
+          token
+        },
+        message: `Bienvenido ${user.name} te has logeado con éxito`,
+      })
+
+
     } catch (error) {
       next(error);
     } finally {
@@ -323,7 +326,63 @@ const userController = {
     }
   },
 
-};
+  changePassword: async (request, response, next) => {
+    try {
+      connection = await getConnection();
+      const {
+        id
+      } = request.params;
+
+      await newPasswordSchema.validateAsync(request.body);
+      const {
+        oldPassword,
+        newPassword,
+      } = request.body;
+
+      if (Number(id) !== request.authorization.id) {
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: `No tienes permisos para cambiar la password del usurario con id ${id}`
+        });
+      };
+
+      const [userPassword] = await connection.query(`SELECT id, password FROM user WHERE id=?`, [id]);
+      const [user] = userPassword
+      if (!user) {
+        return response.status(404).json({
+          status: 'error',
+          code: 404,
+          error: `El usuario con el id ${user.id} no existe`
+        });
+      };
+
+      const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+
+      if (!passwordMatch) {
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: `Contraseña incorrecta`
+        });
+      };
+      const newPasswordDB = await bcrypt.hash(newPassword, 10);
+      console.log(newPasswordDB);
+      await connection.query(`
+      UPDATE users SET password = ?,last_Password_update= ? WHERE id=?
+    `, [newPasswordDB, dateNow, id])
+
+
+      response.send({
+        status: 200,
+        message: `La contraseña fue mmodificada con exito`
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+}
 
 module.exports = {
   userController

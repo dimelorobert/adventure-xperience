@@ -84,9 +84,7 @@ const adventureController = {
             id
          } = request.params;
          connection = await getConnection();
-         const [result] = await connection.query(`SELECT * FROM adventure WHERE id = ?`, [id]);
-
-         const [reviews] = await connection.query(`SELECT adventure_id, AVG(points) FROM review WHERE adventure_id=?`, [id]);
+         const [result] = await connection.query(`SELECT a.* , AVG(r.points) as averageAdventure FROM adventure a, review r WHERE a.id = r.adventure_id AND a.id =?`, [id]);
 
          if (!result.length) {
             return response.status(400).json({
@@ -95,12 +93,11 @@ const adventureController = {
                error: `La aventura con id ${id} no existe,por favor intentalo de nuevo`
             });
          } else {
-            const [adventureResult] = result;
+            let [adventureResult] = result;
             response.send({
                status: 200,
                data: {
-                  ...adventureResult,
-                  averageReviews: reviews[0] || 0
+                  ...adventureResult
                },
                message: `La busqueda de la aventura con el id ${adventureResult.id} fue realizada con exito`
             });

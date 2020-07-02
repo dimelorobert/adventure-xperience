@@ -36,17 +36,8 @@ const userSchema = Joi.object().keys({
     .max(30)
     .required()
     .error(helpers.errorGenerator('El campo ciudad es obligatorio, introduce un ciudad', 400)),
-  nickname: Joi.string()
-    .min(3)
-    .max(20)
-    .required()
-    .error(
-      helpers.errorGenerator(
-        'El campo nickname es obligatorio y no puede exceder más de 20 caracteres',
-        400
-      )
-    ),
-  role: Joi.string(),
+
+
   email: Joi.string()
     .email()
     .required()
@@ -54,14 +45,17 @@ const userSchema = Joi.object().keys({
   password: Joi.string()
     .min(3)
     .max(16)
+    .regex(/^[a-zA-Z0-9]{3,36}$/)
     .required()
     .error(
       helpers.errorGenerator(
-        'El campo password es obligatorio y no debe exceder más de 16 caracteres',
+        'El campo password es obligatorio, no admite caracteres especiales y no debe exceder más de 16 caracteres',
         400
       )
     ),
+  role: Joi.string(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
+  modify_date: Joi.date().format('YYYY-MM-DD').utc(),
   ip: Joi.string().max(50)
 });
 

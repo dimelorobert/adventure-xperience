@@ -1,3 +1,5 @@
+
+
 'use strict';
 
 const {
@@ -10,7 +12,6 @@ const {
 	helpers
 } = require('../helpers');
 let dateNow = helpers.formatDateToDB(new Date());
-let creating_date = helpers.formatDateJSON(new Date());
 let connection;
 
 const reviewController = {

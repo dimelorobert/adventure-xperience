@@ -21,24 +21,20 @@ const {
   adventureSchema
 } = require('./adventure');
 const {
-  chatSchema
-} = require('./chat');
-const {
-  cartSchema
-} = require('./cart');
-const {
   reviewSchema
 } = require('./review');
 const {
   loginSchema
 } = require('./login');
+const {
+  newPasswordSchema
+} = require('./changePassword');
 
 module.exports = {
   userSchema,
   categorySchema,
   adventureSchema,
-  cartSchema,
-  chatSchema,
   reviewSchema,
-  loginSchema
+  loginSchema,
+  newPasswordSchema
 };
