@@ -44,7 +44,6 @@ const adventureSchema = Joi.object({
     .min(2)
     .max(10)
     .positive()
-    .required()
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
   isAvailable: Joi.string()
     .max(20)

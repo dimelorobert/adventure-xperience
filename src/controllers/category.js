@@ -38,6 +38,8 @@ const categoryController = {
             error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
           });
         }
+      } else {
+        savedFileName = image;
       }
 
       const [result] = await connection.query(`

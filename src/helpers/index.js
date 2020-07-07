@@ -56,7 +56,14 @@ const helpers = {
       return error;
     }
 
+  },
+
+  // Random string
+
+  randomString: (size = 20) => {
+    return crypto.randomBytes(size).toString('hex').slice(0, size);
   }
+
 
 };
 
