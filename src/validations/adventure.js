@@ -26,6 +26,7 @@ const adventureSchema = Joi.object({
         400
       )
     ),
+  image: Joi.string(),
   price: Joi.number()
     .positive()
     .precision(2)
@@ -41,15 +42,15 @@ const adventureSchema = Joi.object({
     .required()
     .error(helpers.errorGenerator('Por favor rellena este campo con una ciudad valida.', 400)),
   vacancy: Joi.number()
-    .min(2)
+    .min(0)
     .max(10)
-    .positive()
     .required()
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
   isAvailable: Joi.string()
     .max(20)
     .required()
     .error(helpers.errorGenerator('Este campo no puede ir vacio, Por favor selecciona una opcion valida para este campo', 400)),
+  image: Joi.any(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
   modify_date: Joi.date().format('YYYY-MM-DD').utc(),
   date_selected: Joi.date().format('YYYY-MM-DD').utc(),

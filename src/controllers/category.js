@@ -25,7 +25,7 @@ const categoryController = {
         image
       } = request.body;
       connection = await getConnection();
-      let savedFileName;
+      /*let savedFileName;
 
       if (request.files && request.files.image) {
         try {
@@ -38,18 +38,18 @@ const categoryController = {
             error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
           });
         }
-      }
+      }*/
 
       const [result] = await connection.query(`
         INSERT INTO category(name, image, creation_date) 
-        VALUES(?, ?, ?);`, [name, savedFileName, dateNow]);
+        VALUES(?, ?, ?);`, [name, image, dateNow]);
 
       response.send({
         status: 200,
         data: {
           id: result.insertId,
           name,
-          image: savedFileName,
+          image,
           creation_date: creating_date
         },
         message: `La categoria con el id ${result.insertId} fue creada exitosamente`
@@ -95,7 +95,7 @@ const categoryController = {
   list: async (request, response, next) => {
     try {
       connection = await getConnection();
-      const [result] = await connection.query(`SELECT * FROM category;`);
+      const [result] = await connection.query(`SELECT * FROM category LIMIT 4;`);
       if (!result.length) {
         return response.status(404).json({
           status: 'error',
@@ -139,7 +139,7 @@ const categoryController = {
         });
 
       };
-      if (current[0].image) {
+      /*if (current[0].image) {
         await helpers.deletePhoto(categoryImagePath, current[0].image);
       };
 
@@ -157,15 +157,15 @@ const categoryController = {
         }
       } else {
         savedFileName = current.image;
-      }
-      await connection.query(`UPDATE category SET name=?, image=?, modify_date=? WHERE id=?`, [name, savedFileName, dateNow, id]);
+      }*/
+      await connection.query(`UPDATE category SET name=?, image=?, modify_date=? WHERE id=?`, [name, image, dateNow, id]);
 
       response.send({
         status: 200,
         data: {
           id,
           name,
-          image: savedFileName,
+          image,
           modify_date: creating_date,
         },
         message: `La categoria con el id ${id} fue modificada satisfactoriamente`

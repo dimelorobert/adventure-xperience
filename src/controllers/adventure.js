@@ -45,12 +45,14 @@ const adventureController = {
                   error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
                });
             }
+         } else {
+            savedFileName = image;
          }
 
          const [result] = await connection.query(`
             INSERT INTO adventure(name, description, image, price, country, city, vacancy, isAvailable, creation_date, category_id)
             VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ?);
-            `, [name, description, savedFileName, price, country, city, vacancy, isAvailable, dateNow, category_id]);
+            `, [name, description, image, price, country, city, vacancy, isAvailable, dateNow, category_id]);
 
          response.send({
             status: 200,
@@ -58,7 +60,7 @@ const adventureController = {
                id: result.insertId,
                name,
                description,
-               image: savedFileName,
+               image,
                price,
                country,
                city,
@@ -182,7 +184,7 @@ const adventureController = {
          } else {
             savedFileName = current.image;
          }
-         await connection.query(`UPDATE adventure SET name=?, description=?, image=?, price=?, country=?, city=?, vacancy=?, isAvailable=?, modify_date=? WHERE id=?`, [name, description, savedFileName, price, country, city, vacancy, isAvailable, dateNow, id]);
+         await connection.query(`UPDATE adventure SET name=?, description=?, image=?, price=?, country=?, city=?, vacancy=?, isAvailable=?, modify_date=? WHERE id=?`, [name, description, image, price, country, city, vacancy, isAvailable, dateNow, id]);
 
          response.send({
             status: 200,
@@ -190,7 +192,7 @@ const adventureController = {
                id,
                name,
                description,
-               image: savedFileName,
+               image,
                price,
                country,
                city,

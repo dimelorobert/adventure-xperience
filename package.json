@@ -39,6 +39,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^2.1.0",
     "sharp": "0.25.3",
+    "sweetalert2": "^9.15.2",
     "uuid": "8.1.0"
   },
   "devDependencies": {

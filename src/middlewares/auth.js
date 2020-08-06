@@ -1,84 +1,88 @@
 require('dotenv').config();
-const {
-    SECRET_KEY
-} = process.env;
-
 const jwt = require('jsonwebtoken');
 
 const {
     getConnection
 } = require('../database');
 const {
-    helpers
+    generateError
 } = require('../helpers');
 
-let connection;
-
-
-async function userAuthenticated(request, response, next) {
-
+async function userIsAuthenticated(request, response, next) {
+    let connection;
     try {
-        connection = await getConnection();
         const {
             authorization
         } = request.headers;
-        let decoded;
-        try {
-            decoded = jwt.verify(authorization, SECRET_KEY);
-            console.log(authorization);
-        } catch (error) {
-            return response.status(500).json({
-                status: 'error',
-                code: 500,
-                error: `El token no esta bien formado`
-            });
+
+        if (!authorization) {
+            throw generateError('Falta la cabecera de authorization', 401);
         }
+
+        const authorizationParts = authorization.split(' ');
+
+        let token;
+
+        if (authorizationParts.length === 1) {
+            token = authorization;
+        } else if (authorizationParts[0] === 'Bearer') {
+            token = authorizationParts[1];
+        } else {
+            throw generateError('No puedo leer el token', 401);
+        }
+
+        let decoded;
+
+        decoded = jwt.verify(token, process.env.SECRET);
+
+        // Comprobar fecha de emision del token
 
         const {
             id,
             iat
         } = decoded;
-        const [result] = connection.query(`
-         SELECT last_password_update FROM user WHERE id=?`, [id]);
+
+        connection = await getConnection();
+
+        const [result] = await connection.query(`select last_password_update from user where id=?;`, [id]);
 
         if (!result.length) {
-            return response.status(404).json({
-                status: 'error',
-                code: 404,
-                error: `El usuario con el id ${user.id} no existe`
-            });
-        };
+            throw generateError('El usuario no existe en la base de datos', 401);
+        }
+
         const [user] = result;
+        console.log(user);
+        console.log(new Date(iat * 1000));
+        console.log(new Date(user.last_password_update));
 
         if (new Date(iat * 1000) < new Date(user.last_password_update)) {
-            return response.status(404).json({
-                status: 'error',
-                code: 404,
-                error: `El token ha expirado, inicia sesión para renovarlo`
-            });
+            throw new Error('El token ya no vale, haz login para conseguir otro');
         }
-        request.authorization = decoded
+
+        req.auth = decoded;
+
         next();
     } catch (error) {
-        error.http = 401;
-        next(error);
+        const authError = new Error('Invalid authorization');
+        authError.httpCode = 401;
+        next(authError);
     } finally {
         if (connection) {
             connection.release();
         }
     }
-
-
 }
 
 function userIsAdmin(request, response, next) {
-    if (!request.authorization || request.authorization.role !== 'admin') {
-        const error = new Error('No tienes privilegios de administración');
+    if (!request.auth || request.auth.role !== 'admin') {
+        const error = new Error('No tienes privilegios de administrador');
         error.httpCode = 401;
         return next(error);
     }
-
     next();
-
 }
-module.exports = { userAuthenticated, userIsAdmin }
+
+module.exports = {
+    userIsAuthenticated,
+    userIsAdmin
+};

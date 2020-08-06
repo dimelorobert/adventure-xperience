@@ -45,7 +45,7 @@ const userController = {
       const passwordDB = await bcrypt.hash(password, 10);
 
       let savedFileName;
-      if (request.files && request.files.image) {
+      if (request.files && request.files.image || request.body) {
         try {
           let uploadImageBody = request.files.image;
           savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
@@ -56,6 +56,8 @@ const userController = {
             error: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
           });
         }
+      } else {
+        
       }
 
       const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
@@ -70,7 +72,7 @@ const userController = {
       //let roleUser = 'admin';
       const [result] = await connection.query(`
         INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip]);
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, /*savedFileName*/ image, dateNow, request.ip]);
 
       response.send({
         status: 200,
@@ -84,7 +86,7 @@ const userController = {
           email,
           passwordDB,
           last_password_update: dateNow,
-          image: savedFileName,
+          image: image, //savedFileName,
           role,
           creation_date: creating_date,
           ip: request.ip
@@ -333,54 +335,69 @@ const userController = {
         id
       } = request.params;
 
+      // Body: oldPassword, newPassword, newPasswordRepeat (optional)
       await newPasswordSchema.validateAsync(request.body);
+
       const {
         oldPassword,
         newPassword,
       } = request.body;
 
-      if (Number(id) !== request.authorization.id) {
-        return response.status(401).json({
-          status: 'error',
-          code: 401,
-          error: `No tienes permisos para cambiar la password del usurario con id ${id}`
-        });
-      };
+      if (Number(id) !== request.auth.id) {
+        throw generateError('No tienes permisos para cambiar el password del usuario', 401);
+      }
 
-      const [userPassword] = await connection.query(`SELECT id, password FROM user WHERE id=?`, [id]);
-      const [user] = userPassword
-      if (!user) {
-        return response.status(404).json({
-          status: 'error',
-          code: 404,
-          error: `El usuario con el id ${user.id} no existe`
-        });
-      };
+      if (newPassword !== newPasswordRepeat) {
+        throw generateError('El campo nueva password y nueva password repetir deben de ser identicos', 400);
+      }
 
-      const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+      if (oldPassword === newPassword) {
+        throw generateError('La password actual y la nueva password no pueden ser iguales', 401);
+      }
 
-      if (!passwordMatch) {
-        return response.status(401).json({
-          status: 'error',
-          code: 401,
-          error: `Contraseña incorrecta`
-        });
-      };
-      const newPasswordDB = await bcrypt.hash(newPassword, 10);
-      console.log(newPasswordDB);
-      await connection.query(`
-      UPDATE users SET password = ?,last_Password_update= ? WHERE id=?
-    `, [newPasswordDB, dateNow, id])
+      const [currentUser] = await connection.query(
+        `
+      SELECT id, password FROM user WHERE id=?
+    `,
+        [id]
+      );
 
+      if (!currentUser.length) {
+        throw generateError(`El usuario con id: ${id} no existe`, 404);
+      }
+
+      const [dbUser] = currentUser;
+
+      // Comprobar la vieja password
+
+      const passwordsMath = await bcrypt.compare(oldPassword, dbUser.password);
+
+      if (!passwordsMath) {
+        throw generateError('La password actual es incorrecta', 401);
+      }
+
+      // hash nueva password
+
+      const dbNewPassword = await bcrypt.hash(newPassword, 10);
+
+      await connection.query(
+        `
+      update users set password=? where id=?
+    `,
+        [dbNewPassword, id]
+      );
 
       response.send({
-        status: 200,
-        message: `La contraseña fue mmodificada con exito`
+        status: 'ok',
+        message: 'Password actualizado correctamente, vuelve a hacer login'
       });
     } catch (error) {
       next(error);
+    } finally {
+      if (connection) connection.release();
     }
   }
+
 
 }
 
