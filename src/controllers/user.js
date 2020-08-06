@@ -43,6 +43,7 @@ const userController = {
       connection = await getConnection();
 
       const passwordDB = await bcrypt.hash(password, 10);
+      const regCode = helpers.randomString(20);
 
       let savedFileName;
       if (request.files && request.files.image || request.body) {
@@ -57,7 +58,11 @@ const userController = {
           });
         }
       } else {
+<<<<<<< HEAD
         
+=======
+        savedFileName = image;
+>>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
       }
 
       const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
@@ -71,8 +76,13 @@ const userController = {
 
       //let roleUser = 'admin';
       const [result] = await connection.query(`
+<<<<<<< HEAD
         INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, /*savedFileName*/ image, dateNow, request.ip]);
+=======
+        INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
+>>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
 
       response.send({
         status: 200,
@@ -89,7 +99,8 @@ const userController = {
           image: image, //savedFileName,
           role,
           creation_date: creating_date,
-          ip: request.ip
+          ip: request.ip,
+          regCode
         },
         message: `El usuario con el id ${result.insertId} fue creado con exito`
       });
@@ -334,6 +345,7 @@ const userController = {
       const {
         id
       } = request.params;
+      console.log(request.params);
 
       // Body: oldPassword, newPassword, newPasswordRepeat (optional)
       await newPasswordSchema.validateAsync(request.body);

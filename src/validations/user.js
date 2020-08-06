@@ -53,7 +53,11 @@ const userSchema = Joi.object().keys({
         400
       )
     ),
+<<<<<<< HEAD
   image: Joi.string(),
+=======
+    image: Joi.any(),
+>>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
   role: Joi.string(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
   modify_date: Joi.date().format('YYYY-MM-DD').utc(),

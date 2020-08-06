@@ -38,7 +38,13 @@ const categoryController = {
             error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
           });
         }
+<<<<<<< HEAD
       }*/
+=======
+      } else {
+        savedFileName = image;
+      }
+>>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
 
       const [result] = await connection.query(`
         INSERT INTO category(name, image, creation_date) 
