@@ -2,9 +2,6 @@
 
 //////////////// Modulos a usar /////////////////////////
 require('dotenv').config();
-const {
-  PUBLIC_HOST
-} = process.env;
 const path = require('path');
 const express = require('express');
 const router = require('./routes');
@@ -26,6 +23,7 @@ app.use(bodyParser.urlencoded({
 app.use(fileUpload());
 app.use('/', router);
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // MIDDLEWARE CONTROLADOR DE ERRORES
 //Errores previos a Middleware llegan aqui

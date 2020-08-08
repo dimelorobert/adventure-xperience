@@ -1,6 +1,7 @@
 'use strict';
 
 require('dotenv').config();
+
 const path = require('path');
 const sharp = require('sharp');
 const {
@@ -12,7 +13,6 @@ const {
 const crypto = require('crypto');
 const fs = require('fs-extra');
 const uuid = require('uuid');
-const nodemailer = require('nodemailer');
 
 const helpers = {
   formatDateToDB: (date) => {
@@ -64,19 +64,8 @@ const helpers = {
     } catch (error) {
       return error;
     }
-  },
-  sendEmailNodemailer: async (params) => {
-    transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: 'example@gmail.com',
-        pass: ''
-      }
-    });
   }
-
-};
-
+}
 module.exports = {
   helpers
 };

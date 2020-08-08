@@ -6,7 +6,10 @@ const {
   SECRET_KEY,
   PUBLIC_HOST,
   USERS_UPLOADS_DIR,
-  USERS_VIEW_UPLOADS
+  USERS_VIEW_UPLOADS,
+  SERVICE_EMAIL,
+  ADMIN_EMAIL,
+  PASSWORD_ADMIN_EMAIL
 } = process.env;
 
 const {
@@ -30,6 +33,7 @@ const uuid = require('uuid');
 const path = require('path');
 
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 
 const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
@@ -40,6 +44,8 @@ let connection;
 const usersController = {
   create: async (request, response, next) => {
     try {
+
+      // validation body data received 
       await usersSchema.validateAsync(request.body);
       const {
         name,
@@ -53,11 +59,19 @@ const usersController = {
       } = request.body;
       connection = await getConnection();
 
+      // we hash the password to save into db
       const passwordDB = await bcrypt.hash(password, 10);
+
+      // code to activate account
       const regCode = helpers.randomString(20);
+
+      // name userfolder
       const emailUuid = uuid.v4(email);
+
+      // path where it is save the userdata
       const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`, `${emailUuid}`);
 
+      // we process image file that we receive into the body
       let savedFileName;
       if (request.files && request.files.image) {
         try {
@@ -73,7 +87,10 @@ const usersController = {
       } else {
         savedFileName = image;
       }
+      // we generate the image link with the path to save into db and show in front
+      let image4Vue = path.join(`${PUBLIC_HOST}`, `${USERS_VIEW_UPLOADS}`, `${emailUuid}`, `${savedFileName}`);
 
+      // we check if the email exist into db
       const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
       if (existingEmail.length) {
         return response.status(409).json({
@@ -82,15 +99,56 @@ const usersController = {
           error: `El email ${email} que has introducido ya esta registrado`
         });
       }
-      
+
+      // role user default
       let role = 'user';
-      let image4Vue = path.join(`${PUBLIC_HOST}`, `${USERS_VIEW_UPLOADS}`, `${emailUuid}`, `${savedFileName}`);
 
-
+      // we save all data into db
       const [result] = await connection.query(`
         INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
 
+      // we generate a link where user will activate his account
+      const userValidationLink = `${PUBLIC_HOST}/users/${result.insertId}/validate?code=${regCode}`
+
+      // we send an email with the activation link for user account 
+      try {
+        const transporter = nodemailer.createTransport({
+          service: SERVICE_EMAIL,
+          auth: {
+            user: ADMIN_EMAIL,
+            pass: PASSWORD_ADMIN_EMAIL
+          }
+        });
+        const mailOptions = {
+          from: ADMIN_EMAIL,
+          to: `${email}`,
+          subject: `Activa tu cuenta en Aventura Xperience`,
+          text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
+          html: `
+            <div>
+              <h1> Activa tu cuenta en Aventura Xperience </h1>
+              <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
+              <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
+              </p>
+            </div>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          console.log("Email enviado");
+          response.status(200).json(request.body);
+
+        });
+
+      } catch (error) {
+        console.log(error);
+        if (error) {
+          response.status(500).send(error.message);
+        }
+      }
+
+      // if everything ok, we send all data to json format
       response.send({
         status: 200,
         data: {
