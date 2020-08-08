@@ -6,7 +6,7 @@ const {
   helpers
 } = require('../helpers');
 
-const userSchema = Joi.object().keys({
+const usersSchema = Joi.object().keys({
   name: Joi.string()
     .min(3)
     .max(30)
@@ -53,11 +53,9 @@ const userSchema = Joi.object().keys({
         400
       )
     ),
-<<<<<<< HEAD
-  image: Joi.string(),
-=======
-    image: Joi.any(),
->>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
+
+  image: Joi.any(),
+
   role: Joi.string(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
   modify_date: Joi.date().format('YYYY-MM-DD').utc(),
@@ -65,5 +63,5 @@ const userSchema = Joi.object().keys({
 });
 
 module.exports = {
-  userSchema
+  usersSchema
 };

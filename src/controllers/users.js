@@ -3,32 +3,44 @@
 // Modulos Requeridos
 require('dotenv').config();
 const {
-  SECRET_KEY
+  SECRET_KEY,
+  PUBLIC_HOST,
+  USERS_UPLOADS_DIR,
+  USERS_VIEW_UPLOADS
 } = process.env;
+
 const {
   getConnection
 } = require('../database');
+
 const jwt = require('jsonwebtoken');
+
 const {
-  userSchema,
+  usersSchema,
   loginSchema,
   newPasswordSchema
 } = require('../validations');
+
 const {
   helpers
 } = require('../helpers');
+
+const uuid = require('uuid');
+
 const path = require('path');
+
 const bcrypt = require('bcrypt');
+
 const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
-let userImagePath = path.join(__dirname, `../${process.env.USER_UPLOADS_DIR}`);
+
 
 let connection;
 
-const userController = {
-  signup: async (request, response, next) => {
+const usersController = {
+  create: async (request, response, next) => {
     try {
-      await userSchema.validateAsync(request.body);
+      await usersSchema.validateAsync(request.body);
       const {
         name,
         surname,
@@ -37,16 +49,17 @@ const userController = {
         city,
         email,
         password,
-        image,
-        role
+        image
       } = request.body;
       connection = await getConnection();
 
       const passwordDB = await bcrypt.hash(password, 10);
       const regCode = helpers.randomString(20);
+      const emailUuid = uuid.v4(email);
+      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`, `${emailUuid}`);
 
       let savedFileName;
-      if (request.files && request.files.image || request.body) {
+      if (request.files && request.files.image) {
         try {
           let uploadImageBody = request.files.image;
           savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
@@ -58,11 +71,7 @@ const userController = {
           });
         }
       } else {
-<<<<<<< HEAD
-        
-=======
         savedFileName = image;
->>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
       }
 
       const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
@@ -73,16 +82,14 @@ const userController = {
           error: `El email ${email} que has introducido ya esta registrado`
         });
       }
+      
+      let role = 'user';
+      let image4Vue = path.join(`${PUBLIC_HOST}`, `${USERS_VIEW_UPLOADS}`, `${emailUuid}`, `${savedFileName}`);
 
-      //let roleUser = 'admin';
+
       const [result] = await connection.query(`
-<<<<<<< HEAD
-        INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, /*savedFileName*/ image, dateNow, request.ip]);
-=======
         INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`, [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
->>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
 
       response.send({
         status: 200,
@@ -94,9 +101,9 @@ const userController = {
           country,
           city,
           email,
-          passwordDB,
+          password: passwordDB,
           last_password_update: dateNow,
-          image: image, //savedFileName,
+          image: image4Vue,
           role,
           creation_date: creating_date,
           ip: request.ip,
@@ -168,7 +175,7 @@ const userController = {
   },
   update: async (request, response, next) => {
     try {
-      await userSchema.validateAsync(request.body);
+      await usersSchema.validateAsync(request.body);
       const {
         name,
         surname,
@@ -414,5 +421,5 @@ const userController = {
 }
 
 module.exports = {
-  userController
+  usersController
 };

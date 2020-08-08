@@ -5,7 +5,7 @@ const {
   getConnection
 } = require('../database');
 const {
-  categorySchema
+  categoriesSchema
 } = require('../validations');
 const {
   helpers
@@ -16,16 +16,16 @@ let creating_date = helpers.formatDateJSON(new Date());
 let categoryImagePath = path.join(__dirname, `../${process.env.CATEGORY_UPLOADS_DIR}`);
 let connection;
 
-const categoryController = {
-  new: async (request, response, next) => {
+const categoriesController = {
+  create: async (request, response, next) => {
     try {
-      await categorySchema.validateAsync(request.body);
+      await categoriesSchema.validateAsync(request.body);
       const {
         name,
         image
       } = request.body;
       connection = await getConnection();
-      /*let savedFileName;
+      let savedFileName;
 
       if (request.files && request.files.image) {
         try {
@@ -38,13 +38,10 @@ const categoryController = {
             error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
           });
         }
-<<<<<<< HEAD
-      }*/
-=======
+
       } else {
         savedFileName = image;
       }
->>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
 
       const [result] = await connection.query(`
         INSERT INTO category(name, image, creation_date) 
@@ -125,7 +122,7 @@ const categoryController = {
   },
   update: async (request, response, next) => {
     try {
-      await categorySchema.validateAsync(request.body);
+      await categoriesSchema.validateAsync(request.body);
       const {
         name,
         image,
@@ -250,5 +247,5 @@ const categoryController = {
 };
 
 module.exports = {
-  categoryController
+  categoriesController
 };

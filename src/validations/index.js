@@ -1,28 +1,17 @@
 'use strict';
 
-/*const schemas = {
-  user: require('./user'),
-  category: require('./category'),
-  adventure: require('./adventure'),
-  chat: require('./chat'),
-  cart: require('./cart'),
-  review: require('./review'),
-  login: require('./login')
-}
-
-module.exports = {schemas};*/
 const {
-  userSchema
-} = require('./user');
+  usersSchema
+} = require('./users');
 const {
-  categorySchema
-} = require('./category');
+  categoriesSchema
+} = require('./categories');
 const {
-  adventureSchema
-} = require('./adventure');
+  adventuresSchema
+} = require('./adventures');
 const {
-  reviewSchema
-} = require('./review');
+  reviewsSchema
+} = require('./reviews');
 const {
   loginSchema
 } = require('./login');
@@ -31,10 +20,10 @@ const {
 } = require('./changePassword');
 
 module.exports = {
-  userSchema,
-  categorySchema,
-  adventureSchema,
-  reviewSchema,
+  usersSchema,
+  categoriesSchema,
+  adventuresSchema,
+  reviewsSchema,
   loginSchema,
   newPasswordSchema
 };

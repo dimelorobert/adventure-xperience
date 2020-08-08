@@ -5,7 +5,7 @@ const {
    getConnection
 } = require('../database');
 const {
-   adventureSchema
+   adventuresSchema
 } = require('../validations');
 const {
    helpers
@@ -16,10 +16,10 @@ let creating_date = helpers.formatDateJSON(new Date());
 let adventureImagePath = path.join(__dirname, `../${process.env.ADVENTURE_UPLOADS_DIR}`);
 let connection;
 
-const adventureController = {
-   new: async (request, response, next) => {
+const adventuresController = {
+   create: async (request, response, next) => {
       try {
-         await adventureSchema.validateAsync(request.body);
+         await adventuresSchema.validateAsync(request.body);
          const {
             name,
             description,
@@ -139,7 +139,7 @@ const adventureController = {
    },
    update: async (request, response, next) => {
       try {
-         await adventureSchema.validateAsync(request.body);
+         await adventuresSchema.validateAsync(request.body);
          const {
             name,
             description,
@@ -280,5 +280,5 @@ const adventureController = {
 };
 
 module.exports = {
-   adventureController
+   adventuresController
 };

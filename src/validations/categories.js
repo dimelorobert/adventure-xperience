@@ -7,7 +7,7 @@ const {
   helpers
 } = require('../helpers');
 
-const categorySchema = Joi.object({
+const categoriesSchema = Joi.object({
   name: Joi.string()
     .min(3)
     .max(60)
@@ -24,5 +24,5 @@ const categorySchema = Joi.object({
 });
 
 module.exports = {
-  categorySchema
+  categoriesSchema
 };

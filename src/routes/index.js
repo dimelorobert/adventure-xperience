@@ -1,17 +1,17 @@
 'use strict';
 
 const routerx = require('express-promise-router');
-const userRouter = require('./user');
-const categoryRouter = require('./category');
-const adventureRouter = require('./adventure');
-const reviewRouter = require('./review');
+const usersRouter = require('./users');
+const categoriesRouter = require('./categories');
+const adventuresRouter = require('./adventures');
+const reviewsRouter = require('./reviews');
 
 const router = routerx();
 
-router.use('/user', userRouter);
-router.use('/category', categoryRouter);
-router.use('/adventure', adventureRouter);
-router.use('/review', reviewRouter);
+router.use('/users', usersRouter);
+router.use('/categories', categoriesRouter);
+router.use('/adventures', adventuresRouter);
+router.use('/reviews', reviewsRouter);
 
 
 module.exports = router;

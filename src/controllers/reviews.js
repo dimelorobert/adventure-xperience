@@ -14,7 +14,7 @@ const {
 let dateNow = helpers.formatDateToDB(new Date());
 let connection;
 
-const reviewController = {
+const reviewsController = {
 	vote: async (request, response, next) => {
 		try {
 
@@ -197,5 +197,5 @@ const reviewController = {
 };
 
 module.exports = {
-	reviewController
+	reviewsController
 };

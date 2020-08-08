@@ -4,7 +4,7 @@ const {
   helpers
 } = require('../helpers');
 
-const adventureSchema = Joi.object({
+const adventuresSchema = Joi.object({
   name: Joi.string()
     .min(3)
     .max(30)
@@ -44,11 +44,7 @@ const adventureSchema = Joi.object({
   vacancy: Joi.number()
     .min(0)
     .max(10)
-<<<<<<< HEAD
     .required()
-=======
-    .positive()
->>>>>>> 61ebaa803733208895c8982ac4b84ab3a6310962
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
   isAvailable: Joi.string()
     .max(20)
@@ -66,5 +62,5 @@ const adventureSchema = Joi.object({
 });
 
 module.exports = {
-  adventureSchema
+  adventuresSchema
 };

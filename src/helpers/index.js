@@ -6,9 +6,13 @@ const sharp = require('sharp');
 const {
   format
 } = require('date-fns');
+const {
+  es
+} = require('date-fns/locale');
 const crypto = require('crypto');
 const fs = require('fs-extra');
 const uuid = require('uuid');
+const nodemailer = require('nodemailer');
 
 const helpers = {
   formatDateToDB: (date) => {
@@ -16,6 +20,11 @@ const helpers = {
   },
   formatDateJSON: (date) => {
     return format(date, `yyyy-MM-dd 'T' HH:mm:ss.SSSxxx`);
+  },
+  formatDate4Vue: (date) => {
+    return format(date, `dd 'de' MMM 'de' yyyy`, {
+      locale: es
+    });
   },
 
   errorGenerator: (message, code) => {
@@ -55,15 +64,16 @@ const helpers = {
     } catch (error) {
       return error;
     }
-
   },
-
-  // Random string
-
-  randomString: (size = 20) => {
-    return crypto.randomBytes(size).toString('hex').slice(0, size);
+  sendEmailNodemailer: async (params) => {
+    transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: 'example@gmail.com',
+        pass: ''
+      }
+    });
   }
-
 
 };
 

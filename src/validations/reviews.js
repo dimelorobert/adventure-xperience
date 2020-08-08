@@ -5,7 +5,7 @@ const {
   helpers
 } = require('../helpers');
 
-const reviewSchema = Joi.object({
+const reviewsSchema = Joi.object({
   points: Joi.number()
     .min(1)
     .max(5)
@@ -29,5 +29,5 @@ const reviewSchema = Joi.object({
 });
 
 module.exports = {
-  reviewSchema
+  reviewsSchema
 };
