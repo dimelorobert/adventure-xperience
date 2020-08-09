@@ -45,7 +45,7 @@ const usersController = {
   create: async (request, response, next) => {
     try {
 
-      // validation body data received 
+      // we validate data body received 
       await usersSchema.validateAsync(request.body);
       const {
         name,
@@ -57,6 +57,8 @@ const usersController = {
         password,
         image
       } = request.body;
+
+      // we open connection to db
       connection = await getConnection();
 
       // we hash the password to save into db
@@ -74,8 +76,10 @@ const usersController = {
       // we process image file that we receive into the body
       let savedFileName;
       if (request.files && request.files.image) {
+
         try {
           let uploadImageBody = request.files.image;
+          // we define location path and image size values
           savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
         } catch (error) {
           return response.status(400).json({
@@ -84,14 +88,16 @@ const usersController = {
             error: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
           });
         }
+
       } else {
         savedFileName = image;
       }
-      // we generate the image link with the path to save into db and show in front
-      let image4Vue = path.join(`${PUBLIC_HOST}`, `${USERS_VIEW_UPLOADS}`, `${emailUuid}`, `${savedFileName}`);
+      // we generate the image link with the path to save into db and to show in front
+      let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`, `./${savedFileName}`);
 
       // we check if the email exist into db
       const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
+
       if (existingEmail.length) {
         return response.status(409).json({
           status: 'error',
@@ -104,13 +110,13 @@ const usersController = {
       let role = 'user';
 
       // we save all data into db
-      const [result] = await connection.query(`
+      const [newUserData] = await connection.query(`
         INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
 
       // we generate a link where user will activate his account
-      const userValidationLink = `${PUBLIC_HOST}/users/${result.insertId}/validate?code=${regCode}`
+      const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
 
       // we send an email with the activation link for user account 
       try {
@@ -152,7 +158,7 @@ const usersController = {
       response.send({
         status: 200,
         data: {
-          id: result.insertId,
+          id: newUserData.insertId,
           name,
           surname,
           date_birth,
@@ -167,7 +173,7 @@ const usersController = {
           ip: request.ip,
           regCode
         },
-        message: `El usuario con el id ${result.insertId} fue creado con exito`
+        message: `La cuenta fue creada con éxito, verifica tu buzón de correo email para activar tu cuenta.`
       });
     } catch (error) {
       next(error);
@@ -179,11 +185,18 @@ const usersController = {
   },
   get: async (request, response, next) => {
     try {
+
+      // we receive params to get th search
       const {
         id
       } = request.params;
+
+      // we open connection to db
       connection = await getConnection();
+
+      // we build a SQL the query to look for user 
       const [result] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
+
       if (!result.length) {
         return response.status(400).json({
           status: 'error',
@@ -198,6 +211,7 @@ const usersController = {
           message: `La busqueda del usuario con el id ${userResult.id} fue realizada con exito`
         });
       }
+
     } catch (error) {
       next(error);
     } finally {
@@ -208,8 +222,13 @@ const usersController = {
   },
   list: async (request, response, next) => {
     try {
+
+      // we open connection to db
       connection = await getConnection();
+
+      // we build a SQL query to list all users
       const [result] = await connection.query(`SELECT * FROM user;`);
+
       if (!result.length) {
         return response.status(404).json({
           status: 'error',
@@ -223,6 +242,7 @@ const usersController = {
           message: 'Lista de todos los usuarios creados'
         });
       }
+
     } catch (error) {
       next(error);
     } finally {
@@ -350,6 +370,69 @@ const usersController = {
       }
     }
   },
+  activate: async (request, response, next) => {
+    try {
+
+      // we open connection to db and get user id and code activation
+      connection = await getConnection();
+      const {
+        id
+      } = request.params;
+      const {
+        code
+      } = request.query;
+
+      // we build a SQL query to update and to activate the user account
+      const [result] = await connection.query(`
+        UPDATE user
+        SET isActive= 1,
+        reg_code= NULL
+        WHERE id=?
+        AND reg_code=? `,
+        [id, code]);
+
+      if (result.affectedRows === 0) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `No se pudo activar tu cuenta, vuelve a solicitar un nuevo link para activar tu cuenta`
+        });
+      }
+
+      // if you need to use the token uncomment the following lines
+      // we select user role from id
+      /*const [user] = await connection.query(`
+        SELECT role 
+        FROM user 
+        WHERE id=?`, 
+        [id]);
+
+      // we build the JSONWEBTOKEN
+      const tokenPayload = {
+        id: id,
+        role: user[0].role
+      };
+      const token = jwt.sign({
+        tokenPayload
+      }, SECRET_KEY, {
+        expiresIn: '30d'
+      });*/
+
+      return response.status(200).json({
+        /*data: {
+          token
+        },*/
+        message: `La cuenta ha sido actidava con éxito, ya puedes iniciar sesión`,
+      });
+
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   login: async (request, response, next) => {
     try {
       await loginSchema.validateAsync(request.body);
@@ -358,13 +441,13 @@ const usersController = {
         password
       } = request.body;
       connection = await getConnection();
-      const [userEmailDB] = await connection.query(`SELECT id, name, surname, date_birth, country, city, email, password, image, role, ip FROM user WHERE email=?`, [email]);
+      const [userEmailDB] = await connection.query(`SELECT id, name, surname, email, password, role, ip FROM user WHERE email=? AND isActive=1`, [email]);
 
       if (!userEmailDB.length) {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: `El usuario con el email especificado no existe`
+          error: `La cuenta con el email especificado no existe o no esta activado, activa tu cuenta`
         });
       }
       const [user] = userEmailDB;
@@ -391,8 +474,8 @@ const usersController = {
           user,
           token
         },
-        message: `Bienvenido ${user.name} te has logeado con éxito`,
-      })
+        message: `Bienvenid@ ${user.name} ${user.surname} te has logeado con éxito`,
+      });
 
 
     } catch (error) {
