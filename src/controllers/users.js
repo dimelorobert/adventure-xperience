@@ -107,7 +107,8 @@ const usersController = {
       }
 
       // role user default
-      let role = 'user';
+      let role = 'admin';
+      // let role = 'user';
 
       // we save all data into db
       const [newUserData] = await connection.query(`
@@ -115,10 +116,12 @@ const usersController = {
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
 
-      // we generate a link where user will activate his account
-      const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
+      // encrypt id
+      const id_Uuid = uuid.v4(newUserData.insertId);
 
       // we send an email with the activation link for user account 
+      const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
+
       try {
         const transporter = nodemailer.createTransport({
           service: SERVICE_EMAIL,
@@ -158,7 +161,7 @@ const usersController = {
       response.send({
         status: 200,
         data: {
-          id: newUserData.insertId,
+          id: id_Uuid,
           name,
           surname,
           date_birth,
@@ -195,7 +198,11 @@ const usersController = {
       connection = await getConnection();
 
       // we build a SQL the query to look for user 
-      const [result] = await connection.query(`SELECT * FROM user WHERE id = ?`, [id]);
+      const [result] = await connection.query(`
+        SELECT * 
+        FROM user 
+        WHERE id = ?`,
+        [id]);
 
       if (!result.length) {
         return response.status(400).json({
@@ -203,14 +210,13 @@ const usersController = {
           code: 400,
           error: `El usuario con el id ${id} no existe,por favor intentalo de nuevo`
         });
-      } else {
-        const [userResult] = result;
-        response.send({
-          status: 200,
-          data: userResult,
-          message: `La busqueda del usuario con el id ${userResult.id} fue realizada con exito`
-        });
       }
+      const [userResult] = result;
+      response.send({
+        status: 200,
+        data: userResult,
+        message: `La busqueda del usuario con el id ${userResult.id} fue realizada con exito`
+      });
 
     } catch (error) {
       next(error);
@@ -233,7 +239,7 @@ const usersController = {
         return response.status(404).json({
           status: 'error',
           code: 400,
-          error: `No hay usuarios para mostrar aún`
+          error: `No existen usuarios aún`
         });
       } else {
         response.send({
@@ -270,7 +276,11 @@ const usersController = {
 
       connection = await getConnection();
       const passwordDB = await bcrypt.hash(password, 10);
-      const [current] = await connection.query('SELECT image FROM user WHERE id=?', [id]);
+      const [current] = await connection.query(`
+        SELECT image 
+        FROM user 
+        WHERE id=?`,
+        [id]);
 
       if (!current.length) {
         return response.status(400).json({
@@ -299,7 +309,11 @@ const usersController = {
       } else {
         savedFileName = current.image;
       }
-      await connection.query(`UPDATE user SET name=?, surname=?, date_birth=?, country=?, city=?, email=?, password=?,last_password_update=? ,image=?, modify_date=?, ip=? WHERE id=?`, [name, surname, date_birth, country, city, email, passwordDB, dateNow, savedFileName, dateNow, request.ip, id]);
+      await connection.query(`
+        UPDATE user 
+        SET name=?, surname=?, date_birth=?, country=?, city=?, email=?, password=?,last_password_update=? ,image=?, modify_date=?, ip=? 
+        WHERE id=?`,
+        [name, surname, date_birth, country, city, email, passwordDB, dateNow, savedFileName, dateNow, request.ip, id]);
 
       response.send({
         status: 200,
@@ -335,7 +349,11 @@ const usersController = {
       } = request.params;
       connection = await getConnection();
 
-      const [result] = await connection.query('SELECT image FROM user WHERE id=?', [id]);
+      const [result] = await connection.query(`
+        SELECT image 
+        FROM user  
+        WHERE id=?`,
+        [id]);
 
 
       if (!result.length) {
@@ -385,8 +403,7 @@ const usersController = {
       // we build a SQL query to update and to activate the user account
       const [result] = await connection.query(`
         UPDATE user
-        SET isActive= 1,
-        reg_code= NULL
+        SET isActive=1, reg_code=NULL
         WHERE id=?
         AND reg_code=? `,
         [id, code]);
@@ -433,6 +450,111 @@ const usersController = {
       }
     }
   },
+  sendCode: async (request, response, next) => {
+    try {
+
+      const {
+        id
+      } = request.params;
+
+      console.log(id);
+      // we open connection to db
+      connection = await getConnection();
+
+      // we check if the email exist into db
+      const [existingEmail] = await connection.query(`
+        SELECT email 
+        FROM user 
+        WHERE id=?`,
+        [id]);
+
+      if (!existingEmail.length) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `El email ${existingEmail[0]} que has introducido no conincide con tu id o no existe, ponte en contacto con el admin : airbusjayrobert@gmail.com`
+        });
+      }
+      const [mail] = existingEmail;
+      const {
+        email
+      } = mail;
+
+      // code to activate account
+      const newCode = helpers.randomString(20);
+
+      // we set reg_code into db
+      const [result] = await connection.query(`
+        UPDATE user 
+        SET isActive =1,
+        reg_code =?
+        WHERE id = ?
+        `,
+        [newCode, id]);
+      console.log(result);
+
+      if (!result.affectedRows === 0) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `No se pudo generar un nuevo codigo de activación , ponte en contacto con el admin : airbusjayrobert@gmail.com`
+        });
+
+      }
+
+      // encrypt id
+      const idUuid = uuid.v4(id);
+
+      // we send an email with the activation link for user account 
+      const userValidationLink = `${PUBLIC_HOST}/users/${id}/activate?code=${newCode}`;
+
+      try {
+        const transporter = nodemailer.createTransport({
+          service: SERVICE_EMAIL,
+          auth: {
+            user: ADMIN_EMAIL,
+            pass: PASSWORD_ADMIN_EMAIL
+          }
+        });
+        const mailOptions = {
+          from: ADMIN_EMAIL,
+          to: `${email}`,
+          subject: `Activa tu cuenta en Aventura Xperience`,
+          text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
+          html: `
+            <div>
+              <h1> Nuevo codigo de activación cuenta en Aventura Xperience </h1>
+              <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
+              <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
+              </p>
+            </div>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          response.status(200).json(request.body);
+
+        });
+
+      } catch (error) {
+        console.log(error);
+        if (error) {
+          response.status(500).send(error.message);
+        }
+      }
+
+      // if everything ok, we send all data to json format
+      response.send({
+        status: 200,
+        message: `Se ha enviado un nuevo codigo verifica tu buzón de correo email para activar tu cuenta.`
+      });
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   login: async (request, response, next) => {
     try {
       await loginSchema.validateAsync(request.body);
@@ -441,7 +563,12 @@ const usersController = {
         password
       } = request.body;
       connection = await getConnection();
-      const [userEmailDB] = await connection.query(`SELECT id, name, surname, email, password, role, ip FROM user WHERE email=? AND isActive=1`, [email]);
+      const [userEmailDB] = await connection.query(`
+        SELECT id, name, surname, email, password, role, ip 
+        FROM user 
+        WHERE email=? 
+        AND isActive=1`,
+        [email]);
 
       if (!userEmailDB.length) {
         return response.status(401).json({
