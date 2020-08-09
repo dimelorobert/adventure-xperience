@@ -555,6 +555,104 @@ const usersController = {
       }
     }
   },
+  recoveryPassword: async (request, response, next) => {
+    try {
+
+      const {
+        email
+      } = request.body;
+
+      // we open connection to db
+      connection = await getConnection();
+
+      // we check if the email exist into db
+      const [existingUser] = await connection.query(`
+        SELECT id 
+        FROM user 
+        WHERE email=?`,
+        [email]);
+
+      if (!existingUser.length) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `El email ${email} No esta asociado a ningun usuario, verificalo o crea una nueva cuenta`
+        });
+      }
+      console.log(existingUser);
+
+      // new password encrypted
+      const passwordDB = await bcrypt.hash(email, 10);
+
+      // we set reg_code into db
+      const [result] = await connection.query(`
+        UPDATE user 
+        SET password=?,
+        last_password_update=?
+        WHERE email=?
+        `,
+        [passwordDB, dateNow, email]);
+      console.log(result);
+
+      if (!result.affectedRows === 0) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `No se pudo generar una nueva password, ponte en contacto con el admin : airbusjayrobert@gmail.com`
+        });
+
+      }
+
+      // we send an email with the activation link for user account 
+      const userDefaultPasswordLink = `${PUBLIC_HOST}/users/`;
+
+      try {
+        const transporter = nodemailer.createTransport({
+          service: SERVICE_EMAIL,
+          auth: {
+            user: ADMIN_EMAIL,
+            pass: PASSWORD_ADMIN_EMAIL
+          }
+        });
+        const mailOptions = {
+          from: ADMIN_EMAIL,
+          to: `${email}`,
+          subject: `Restablecer password cuenta Aventura Xperience`,
+          text: `Para restablecer la password pega esta URL en tu navegador : ${userDefaultPasswordLink}`,
+          html: `
+            <div>
+              <h1>Restablecer password cuenta Aventura Xperience</h1>
+              <p>Para validar la cuenta pega esta URL en tu navegador: ${userDefaultPasswordLink} o pulsa click en el siguiente enlace:
+              <a href="${userDefaultPasswordLink}" target="_blank">Restablecer password dando click aquí!</a>
+              </p>
+            </div>`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          response.status(200).json(request.body);
+
+        });
+
+      } catch (error) {
+        console.log(error);
+        if (error) {
+          response.status(500).send(error.message);
+        }
+      }
+
+      // if everything ok, we send all data to json format
+      response.send({
+        status: 200,
+        message: `Se ha enviado una nueva password a tu email para iniciar sesión.`
+      });
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   login: async (request, response, next) => {
     try {
       await loginSchema.validateAsync(request.body);
@@ -620,26 +718,39 @@ const usersController = {
       const {
         id
       } = request.params;
-      console.log(request.params);
 
-      // Body: oldPassword, newPassword, newPasswordRepeat (optional)
+      // Body: oldPassword, newPassword, 
       await newPasswordSchema.validateAsync(request.body);
 
       const {
         oldPassword,
         newPassword,
+        newPasswordRepeat
       } = request.body;
 
       if (Number(id) !== request.auth.id) {
-        throw generateError('No tienes permisos para cambiar el password del usuario', 401);
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: `No tienes permisos para cambiar la password de usuario`
+        });
       }
 
       if (newPassword !== newPasswordRepeat) {
-        throw generateError('El campo nueva password y nueva password repetir deben de ser identicos', 400);
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: 'La nueva contraseña no coincide con su repetición'
+        });
       }
 
       if (oldPassword === newPassword) {
-        throw generateError('La password actual y la nueva password no pueden ser iguales', 401);
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: 'La contraseña nueva no puede ser la misma que la antigua'
+        });
+
       }
 
       const [currentUser] = await connection.query(
@@ -650,7 +761,12 @@ const usersController = {
       );
 
       if (!currentUser.length) {
-        throw generateError(`El usuario con id: ${id} no existe`, 404);
+        return response.status(404).json({
+          status: 'error',
+          code: 404,
+          error: `El usuario con id: ${id} no existe`
+        });
+
       }
 
       const [dbUser] = currentUser;
@@ -660,7 +776,11 @@ const usersController = {
       const passwordsMath = await bcrypt.compare(oldPassword, dbUser.password);
 
       if (!passwordsMath) {
-        throw generateError('La password actual es incorrecta', 401);
+        return response.status(401).json({
+          status: 'error',
+          code: 401,
+          error: `Contraseña incorrecta`
+        });
       }
 
       // hash nueva password
@@ -669,14 +789,14 @@ const usersController = {
 
       await connection.query(
         `
-      update users set password=? where id=?
+      UPDATE user SET password=? WHERE id=?
     `,
         [dbNewPassword, id]
       );
 
       response.send({
         status: 'ok',
-        message: 'Password actualizado correctamente, vuelve a hacer login'
+        message: 'La contraseña se ha actualizado correctamente, vuelve a hacer login'
       });
     } catch (error) {
       next(error);

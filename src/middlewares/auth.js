@@ -1,11 +1,15 @@
 require('dotenv').config();
+const {
+    SECRET_KEY
+} = process.env;
+
 const jwt = require('jsonwebtoken');
 
 const {
     getConnection
 } = require('../database');
 const {
-    generateError
+    helpers
 } = require('../helpers');
 
 async function userIsAuthenticated(request, response, next) {
@@ -16,7 +20,7 @@ async function userIsAuthenticated(request, response, next) {
         } = request.headers;
 
         if (!authorization) {
-            throw generateError('Falta la cabecera de authorization', 401);
+            throw helpers.errorGenerator('Falta la cabecera de authorization', 401);
         }
 
         const authorizationParts = authorization.split(' ');
@@ -28,26 +32,35 @@ async function userIsAuthenticated(request, response, next) {
         } else if (authorizationParts[0] === 'Bearer') {
             token = authorizationParts[1];
         } else {
-            throw generateError('No puedo leer el token', 401);
+            throw helpers.errorGenerator('No puedo leer el token', 401);
         }
 
         let decoded;
 
-        decoded = jwt.verify(token, process.env.SECRET);
-
         // Comprobar fecha de emision del token
-
+        try {
+            decoded = jwt.verify(token, SECRET_KEY);
+            console.log(decoded);
+        } catch (error) {
+            throw helpers.errorGenerator('El token no es correcto', 401)
+        }
         const {
             id,
             iat
         } = decoded;
+        console.log(id);
 
         connection = await getConnection();
 
-        const [result] = await connection.query(`select last_password_update from user where id=?;`, [id]);
+        const [result] = await connection.query(`
+            SELECT last_password_update 
+            FROM user 
+            WHERE id=?;`,
+            [id]);
+
 
         if (!result.length) {
-            throw generateError('El usuario no existe en la base de datos', 401);
+            throw helpers.errorGenerator('El usuario no existe en la base de datos', 401);
         }
 
         const [user] = result;
@@ -55,17 +68,17 @@ async function userIsAuthenticated(request, response, next) {
         console.log(new Date(iat * 1000));
         console.log(new Date(user.last_password_update));
 
-        if (new Date(iat * 1000) < new Date(user.last_password_update)) {
-            throw new Error('El token ya no vale, haz login para conseguir otro');
+        if (new Date((iat + 7200) * 1000) < new Date(user.last_password_update)) {
+            throw new Error('El tokenha expirado, haz login para conseguir otro');
         }
 
-        req.auth = decoded;
+        request.auth = decoded;
 
         next();
     } catch (error) {
         const authError = new Error('Invalid authorization');
         authError.httpCode = 401;
-        next(authError);
+        next(error);
     } finally {
         if (connection) {
             connection.release();
