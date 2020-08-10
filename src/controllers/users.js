@@ -34,6 +34,9 @@ const path = require('path');
 
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const {
+  error
+} = require('console');
 
 const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
@@ -117,51 +120,62 @@ const usersController = {
         [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
 
       // encrypt id
-      const id_Uuid = uuid.v4(newUserData.insertId);
+      const idUuid = uuid.v4(newUserData.insertId);
 
       // we send an email with the activation link for user account 
       const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
 
-      try {
-        const transporter = nodemailer.createTransport({
-          service: SERVICE_EMAIL,
-          auth: {
-            user: ADMIN_EMAIL,
-            pass: PASSWORD_ADMIN_EMAIL
-          }
-        });
-        const mailOptions = {
-          from: ADMIN_EMAIL,
-          to: `${email}`,
-          subject: `Activa tu cuenta en Aventura Xperience`,
-          text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
-          html: `
+      if (!existingEmail.length.error) {
+        try {
+          const transporter = nodemailer.createTransport({
+            service: SERVICE_EMAIL,
+            auth: {
+              user: ADMIN_EMAIL,
+              pass: PASSWORD_ADMIN_EMAIL
+            }
+          });
+          const mailOptions = {
+            from: ADMIN_EMAIL,
+            to: `${email}`,
+            subject: `Activa tu cuenta en Aventura Xperience`,
+            text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
+            html: `
             <div>
               <h1> Activa tu cuenta en Aventura Xperience </h1>
               <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
               <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
               </p>
             </div>`
-        };
+          };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-          console.log("Email enviado");
-          response.status(200).json(request.body);
+          transporter.sendMail(mailOptions, (error, info) => {
+            console.log("Email enviado");
+            response.status(200).json(request.body);
 
-        });
+          });
 
-      } catch (error) {
-        console.log(error);
-        if (error) {
-          response.status(500).send(error.message);
+        } catch (error) {
+          console.log(error);
+          if (error) {
+            response.status(500).send(error.message);
+          }
         }
+
+
+
+      } else {
+        return response.status(500).json({
+          status: 'error',
+          code: 500,
+          error: `No se pudo enviar el email debido a un error en el servidor`
+        });
       }
 
       // if everything ok, we send all data to json format
       response.send({
         status: 200,
         data: {
-          id: id_Uuid,
+          id: idUuid,
           name,
           surname,
           date_birth,
@@ -178,6 +192,39 @@ const usersController = {
         },
         message: `La cuenta fue creada con éxito, verifica tu buzón de correo email para activar tu cuenta.`
       });
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
+  list: async (request, response, next) => {
+    try {
+      // we open connection to db
+      connection = await getConnection();
+
+      // we build a SQL query to list all users
+      const [result] = await connection.query(`
+        SELECT id, name, surname, date_birth, 
+        country, city, email, image, role, creation_date
+        FROM user;`);
+
+      if (!result.length) {
+        return response.status(404).json({
+          status: 'error',
+          code: 400,
+          error: `No existen usuarios aún`
+        });
+      }
+      response.send({
+        status: 200,
+        data: result,
+        message: 'Lista de todos los usuarios creados'
+      });
+
+
     } catch (error) {
       next(error);
     } finally {
@@ -226,37 +273,8 @@ const usersController = {
       }
     }
   },
-  list: async (request, response, next) => {
-    try {
 
-      // we open connection to db
-      connection = await getConnection();
 
-      // we build a SQL query to list all users
-      const [result] = await connection.query(`SELECT * FROM user;`);
-
-      if (!result.length) {
-        return response.status(404).json({
-          status: 'error',
-          code: 400,
-          error: `No existen usuarios aún`
-        });
-      } else {
-        response.send({
-          status: 200,
-          data: result,
-          message: 'Lista de todos los usuarios creados'
-        });
-      }
-
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
   update: async (request, response, next) => {
     try {
       await usersSchema.validateAsync(request.body);
@@ -457,88 +475,90 @@ const usersController = {
         id
       } = request.params;
 
-      console.log(id);
       // we open connection to db
       connection = await getConnection();
 
-      // we check if the email exist into db
-      const [existingEmail] = await connection.query(`
-        SELECT email 
+      // we verify if user account is active
+      const [isActivate] = await connection.query(`
+        SELECT isActive, email
         FROM user 
         WHERE id=?`,
         [id]);
+      console.log(isActivate);
 
-      if (!existingEmail.length) {
-        return response.status(400).json({
-          status: 'error',
-          code: 400,
-          error: `El email ${existingEmail[0]} que has introducido no conincide con tu id o no existe, ponte en contacto con el admin : airbusjayrobert@gmail.com`
-        });
-      }
-      const [mail] = existingEmail;
+      const [destructuringIsActiveAndEmail] = isActivate;
+      
       const {
+        isActive,
         email
-      } = mail;
+      } = destructuringIsActiveAndEmail;
+      
 
-      // code to activate account
-      const newCode = helpers.randomString(20);
 
-      // we set reg_code into db
-      const [result] = await connection.query(`
-        UPDATE user 
-        SET isActive =1,
-        reg_code =?
-        WHERE id = ?
-        `,
-        [newCode, id]);
-      console.log(result);
+      if (isActive === 1) {
 
-      if (!result.affectedRows === 0) {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `No se pudo generar un nuevo codigo de activación , ponte en contacto con el admin : airbusjayrobert@gmail.com`
+          error: `La cuenta con el email ${email} ya esta activada`
         });
 
-      }
+      } else {
+        // code to activate account
+        const newCode = helpers.randomString(20);
 
-      // encrypt id
-      const idUuid = uuid.v4(id);
+        // we set reg_code into db
+        const [result] = await connection.query(`
+        UPDATE user
+        SET reg_code=?
+        WHERE id=?`, 
+        [newCode, id]);
+        console.log(result);
 
-      // we send an email with the activation link for user account 
-      const userValidationLink = `${PUBLIC_HOST}/users/${id}/activate?code=${newCode}`;
+        if (!result.affectedRows === 0) {
+          return response.status(400).json({
+            status: 'error',
+            code: 400,
+            error: `No se pudo generar un nuevo codigo de activación ,la cuenta ya esta activada o hubo un error en el servidor, ponte en contacto con el admin : airbusjayrobert@gmail.com`
+          });
 
-      try {
-        const transporter = nodemailer.createTransport({
-          service: SERVICE_EMAIL,
-          auth: {
-            user: ADMIN_EMAIL,
-            pass: PASSWORD_ADMIN_EMAIL
-          }
-        });
-        const mailOptions = {
-          from: ADMIN_EMAIL,
-          to: `${email}`,
-          subject: `Activa tu cuenta en Aventura Xperience`,
-          text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
-          html: `
+        }
+
+        // we send an email with the activation link for user account 
+        const userValidationLink = `${PUBLIC_HOST}/users/${id}/activate?code=${newCode}`;
+
+        try {
+          const transporter = nodemailer.createTransport({
+            service: SERVICE_EMAIL,
+            auth: {
+              user: ADMIN_EMAIL,
+              pass: PASSWORD_ADMIN_EMAIL
+            }
+          });
+          const mailOptions = {
+            from: ADMIN_EMAIL,
+            to: `${email}`,
+            subject: `Activa tu cuenta en Aventura Xperience`,
+            text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
+            html: `
             <div>
               <h1> Nuevo codigo de activación cuenta en Aventura Xperience </h1>
               <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
               <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
               </p>
             </div>`
-        };
+          };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-          response.status(200).json(request.body);
+          transporter.sendMail(mailOptions, (error, info) => {
+            response.status(200).json(request.body);
 
-        });
+          });
 
-      } catch (error) {
-        console.log(error);
-        if (error) {
-          response.status(500).send(error.message);
+        } catch (error) {
+          console.log(error);
+          if (error) {
+            response.status(500).send(error.message);
+          }
         }
       }
 

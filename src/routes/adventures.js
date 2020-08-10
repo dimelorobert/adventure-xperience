@@ -7,7 +7,7 @@ const routerx = require('express-promise-router');
 const router = routerx();
 
 
-router.post('/new', /*authentication.user, authentication.admin,*/ adventuresController.create); // User y Admin
+router.post('/create', /*authentication.user, authentication.admin,*/ adventuresController.create); // User y Admin
 router.get('/get/:id', adventuresController.get); // Anonimo
 //router.get('/user/get/:id', adventureController.get); // Anonimo
 router.get('/list', adventuresController.list); // Anonimo
