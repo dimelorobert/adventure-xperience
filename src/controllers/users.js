@@ -487,12 +487,12 @@ const usersController = {
       console.log(isActivate);
 
       const [destructuringIsActiveAndEmail] = isActivate;
-      
+
       const {
         isActive,
         email
       } = destructuringIsActiveAndEmail;
-      
+
 
 
       if (isActive === 1) {
@@ -511,8 +511,8 @@ const usersController = {
         const [result] = await connection.query(`
         UPDATE user
         SET reg_code=?
-        WHERE id=?`, 
-        [newCode, id]);
+        WHERE id=?`,
+          [newCode, id]);
         console.log(result);
 
         if (!result.affectedRows === 0) {
@@ -748,7 +748,12 @@ const usersController = {
         newPasswordRepeat
       } = request.body;
 
-      if (Number(id) !== request.auth.id) {
+      const {
+        tokenPayload
+      } = request.authorization;
+      console.log(tokenPayload);
+
+      if (Number(id) !== tokenPayload.id) {
         return response.status(401).json({
           status: 'error',
           code: 401,
