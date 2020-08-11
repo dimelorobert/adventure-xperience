@@ -716,7 +716,7 @@ const usersController = {
       });
       return response.status(200).json({
         data: {
-          user,
+          tokenPayload,
           token
         },
         message: `Bienvenid@ ${user.name} ${user.surname} te has logeado con éxito`,
@@ -827,6 +827,66 @@ const usersController = {
       next(error);
     } finally {
       if (connection) connection.release();
+    }
+  },
+  deactivate: async (request, response, next) => {
+    try {
+
+      // we open connection to db and get user id and code activation
+      connection = await getConnection();
+      const {
+        id
+      } = request.params;
+
+      // we select user role from id
+      const [resultUser] = await connection.query(`
+        SELECT role 
+        FROM user 
+        WHERE id=?`,
+        [id]);
+
+      const [user] = resultUser;
+      const {
+        role
+      } = user;
+
+      if (role === 'admin') {
+        // we build a SQL query to update and to activate the user account
+        const [result] = await connection.query(`
+        UPDATE user
+        SET isActive=0
+        WHERE id=?
+        `,
+          [id]);
+
+        if (result.affectedRows === 0) {
+          return response.status(400).json({
+            status: 'error',
+            code: 400,
+            error: `No se pudo desactivar el usuario`
+          });
+        }
+      } else {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `No tienes permisos de administrador`
+        });
+      }
+
+      return response.status(200).json({
+        /*data: {
+          token
+        },*/
+        message: `La cuenta ha sido desactidava`,
+      });
+
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
     }
   }
 
