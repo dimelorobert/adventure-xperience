@@ -385,11 +385,11 @@ const usersController = {
         });
       };
 
-      const [destructuringImageEmail] = result;
+      const [destructuringImageUserFolder] = result;
       const {
         image,
         user_folder
-      } = destructuringImageEmail;
+      } = destructuringImageUserFolder;
 
       if (result && image) {
         await helpers.deletePhoto(user_folder, image);
@@ -823,11 +823,12 @@ const usersController = {
 
       const dbNewPassword = await bcrypt.hash(newPassword, 10);
 
-      await connection.query(
-        `
-      UPDATE users SET password=? WHERE id=?
+      await connection.query(`
+        UPDATE users 
+        SET password=? ,last_password_update=? 
+        WHERE id=?
     `,
-        [dbNewPassword, id]
+        [dbNewPassword, dateNow, id]
       );
 
       response.send({
