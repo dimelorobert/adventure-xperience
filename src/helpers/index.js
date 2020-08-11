@@ -11,7 +11,8 @@ const {
   es
 } = require('date-fns/locale');
 const crypto = require('crypto');
-const fs = require('fs-extra');
+const fsExtra = require('fs-extra');
+const fs = require('fs').promises;
 const uuid = require('uuid');
 
 const helpers = {
@@ -41,7 +42,7 @@ const helpers = {
     const savedFileName = `${uuid.v1()}.jpg`;
 
     //Ensure path
-    await fs.ensureDir(pathImage);
+    await fsExtra.ensureDir(pathImage);
 
     //Process image
     const finalImage = sharp(fileImage.data);
@@ -60,7 +61,16 @@ const helpers = {
   },
   deletePhoto: async (pathImage, fileImage) => {
     try {
-      await fs.unlink(path.join(pathImage, fileImage));
+      await fsExtra.unlink(path.join(pathImage, fileImage));
+    } catch (error) {
+      return error;
+    }
+  },
+  deleteFolder: async (pathFolder) => {
+    try {
+      fs.rmdir(`${pathFolder}`, {
+        recursive: true
+      })
     } catch (error) {
       return error;
     }

@@ -34,9 +34,6 @@ const path = require('path');
 
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-const {
-  error
-} = require('console');
 
 const dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
@@ -97,9 +94,10 @@ const usersController = {
       }
       // we generate the image link with the path to save into db and to show in front
       let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`, `./${savedFileName}`);
+      // let folderUserDataDB = path.join(`${__dirname}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`);
 
       // we check if the email exist into db
-      const [existingEmail] = await connection.query(`SELECT id FROM user WHERE email=?`, [email]);
+      const [existingEmail] = await connection.query(`SELECT id FROM users WHERE email=?`, [email]);
 
       if (existingEmail.length) {
         return response.status(409).json({
@@ -110,18 +108,19 @@ const usersController = {
       }
 
       // role user default
-      let role = 'admin';
-      // let role = 'user';
+      //let role = 'admin';
+
+      let role = 'user';
 
       // we save all data into db
       const [newUserData] = await connection.query(`
-        INSERT INTO user(name, surname, date_birth, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, dateNow, request.ip, regCode]);
+        INSERT INTO users(name, surname, date_birth, country, city, email, role, password, last_password_update, image, user_folder, creation_date, ip, reg_Code)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, userImagePath, dateNow, request.ip, regCode]);
 
       // encrypt id
-      const idUuid = uuid.v4(newUserData.insertId);
-
+      // const idUuid = uuid.v4(newUserData.insertId);
+      /*
       // we send an email with the activation link for user account 
       const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
 
@@ -161,21 +160,19 @@ const usersController = {
           }
         }
 
-
-
       } else {
         return response.status(500).json({
           status: 'error',
           code: 500,
           error: `No se pudo enviar el email debido a un error en el servidor`
         });
-      }
+      }*/
 
       // if everything ok, we send all data to json format
       response.send({
         status: 200,
         data: {
-          id: idUuid,
+          id: newUserData.insertId,
           name,
           surname,
           date_birth,
@@ -185,6 +182,7 @@ const usersController = {
           password: passwordDB,
           last_password_update: dateNow,
           image: image4Vue,
+          user_folder: userImagePath,
           role,
           creation_date: creating_date,
           ip: request.ip,
@@ -209,7 +207,7 @@ const usersController = {
       const [result] = await connection.query(`
         SELECT id, name, surname, date_birth, 
         country, city, email, image, role, creation_date
-        FROM user;`);
+        FROM users;`);
 
       if (!result.length) {
         return response.status(404).json({
@@ -247,7 +245,7 @@ const usersController = {
       // we build a SQL the query to look for user 
       const [result] = await connection.query(`
         SELECT * 
-        FROM user 
+        FROM users 
         WHERE id = ?`,
         [id]);
 
@@ -276,6 +274,7 @@ const usersController = {
 
 
   update: async (request, response, next) => {
+
     try {
       await usersSchema.validateAsync(request.body);
       const {
@@ -296,9 +295,14 @@ const usersController = {
       const passwordDB = await bcrypt.hash(password, 10);
       const [current] = await connection.query(`
         SELECT image 
-        FROM user 
+        FROM users 
         WHERE id=?`,
         [id]);
+
+      // name userfolder
+      const emailUuid = uuid.v4(email);
+      // path where it is save the userdata
+      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`, `${emailUuid}`);
 
       if (!current.length) {
         return response.status(400).json({
@@ -328,7 +332,7 @@ const usersController = {
         savedFileName = current.image;
       }
       await connection.query(`
-        UPDATE user 
+        UPDATE users 
         SET name=?, surname=?, date_birth=?, country=?, city=?, email=?, password=?,last_password_update=? ,image=?, modify_date=?, ip=? 
         WHERE id=?`,
         [name, surname, date_birth, country, city, email, passwordDB, dateNow, savedFileName, dateNow, request.ip, id]);
@@ -368,8 +372,8 @@ const usersController = {
       connection = await getConnection();
 
       const [result] = await connection.query(`
-        SELECT image 
-        FROM user  
+        SELECT image, user_folder
+        FROM users  
         WHERE id=?`,
         [id]);
 
@@ -381,10 +385,16 @@ const usersController = {
         });
       };
 
-      if (result && result[0].image) {
-        await helpers.deletePhoto(userImagePath, result[0].image);
+      const [destructuringImageEmail] = result;
+      const {
+        image,
+        user_folder
+      } = destructuringImageEmail;
+
+      if (result && image) {
+        await helpers.deletePhoto(user_folder, image);
+        await helpers.deleteFolder(user_folder);
       } else {
-        await helpers.deletePhoto(userImagePath, result[0].image);
         return response.status(400).json({
           status: 'error',
           code: 400,
@@ -392,7 +402,7 @@ const usersController = {
         });
       }
 
-      await connection.query(`DELETE FROM user WHERE id=?`, [id]);
+      await connection.query(`DELETE FROM users WHERE id=?`, [id]);
       response.send({
         status: 200,
         message: `El usuario con el id ${id} ha sido borrado con éxito `
@@ -406,6 +416,7 @@ const usersController = {
       }
     }
   },
+
   activate: async (request, response, next) => {
     try {
 
@@ -420,7 +431,7 @@ const usersController = {
 
       // we build a SQL query to update and to activate the user account
       const [result] = await connection.query(`
-        UPDATE user
+        UPDATE users
         SET isActive=1, reg_code=NULL
         WHERE id=?
         AND reg_code=? `,
@@ -438,7 +449,7 @@ const usersController = {
       // we select user role from id
       /*const [user] = await connection.query(`
         SELECT role 
-        FROM user 
+        FROM users 
         WHERE id=?`, 
         [id]);
 
@@ -481,7 +492,7 @@ const usersController = {
       // we verify if user account is active
       const [isActivate] = await connection.query(`
         SELECT isActive, email
-        FROM user 
+        FROM users 
         WHERE id=?`,
         [id]);
       console.log(isActivate);
@@ -509,7 +520,7 @@ const usersController = {
 
         // we set reg_code into db
         const [result] = await connection.query(`
-        UPDATE user
+        UPDATE users
         SET reg_code=?
         WHERE id=?`,
           [newCode, id]);
@@ -588,7 +599,7 @@ const usersController = {
       // we check if the email exist into db
       const [existingUser] = await connection.query(`
         SELECT id 
-        FROM user 
+        FROM users 
         WHERE email=?`,
         [email]);
 
@@ -606,7 +617,7 @@ const usersController = {
 
       // we set reg_code into db
       const [result] = await connection.query(`
-        UPDATE user 
+        UPDATE users 
         SET password=?,
         last_password_update=?
         WHERE email=?
@@ -683,7 +694,7 @@ const usersController = {
       connection = await getConnection();
       const [userEmailDB] = await connection.query(`
         SELECT id, name, surname, email, password, role, ip 
-        FROM user 
+        FROM users 
         WHERE email=? 
         AND isActive=1`,
         [email]);
@@ -780,7 +791,7 @@ const usersController = {
 
       const [currentUser] = await connection.query(
         `
-      SELECT id, password FROM user WHERE id=?
+      SELECT id, password FROM users WHERE id=?
     `,
         [id]
       );
@@ -814,7 +825,7 @@ const usersController = {
 
       await connection.query(
         `
-      UPDATE user SET password=? WHERE id=?
+      UPDATE users SET password=? WHERE id=?
     `,
         [dbNewPassword, id]
       );
@@ -841,7 +852,7 @@ const usersController = {
       // we select user role from id
       const [resultUser] = await connection.query(`
         SELECT role 
-        FROM user 
+        FROM users 
         WHERE id=?`,
         [id]);
 
@@ -853,7 +864,7 @@ const usersController = {
       if (role === 'admin') {
         // we build a SQL query to update and to activate the user account
         const [result] = await connection.query(`
-        UPDATE user
+        UPDATE users
         SET isActive=0
         WHERE id=?
         `,
@@ -875,9 +886,6 @@ const usersController = {
       }
 
       return response.status(200).json({
-        /*data: {
-          token
-        },*/
         message: `La cuenta ha sido desactidava`,
       });
 
