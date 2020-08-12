@@ -108,9 +108,9 @@ const usersController = {
       }
 
       // role user default
-      //let role = 'admin';
+      let role = 'admin';
 
-      let role = 'user';
+      //let role = 'user';
 
       // we save all data into db
       const [newUserData] = await connection.query(`

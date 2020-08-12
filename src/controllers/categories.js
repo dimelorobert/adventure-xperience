@@ -36,7 +36,7 @@ const categoriesController = {
       } = request.body;
 
       // we processed the name received from body to create a path folder
-      const nameProcessed = name.toLowerCase().replace(" ", "-");
+      const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
       const categoriesNameFolder = path.join(categoriesImagePath, `${nameProcessed}`);
 
       // process image (create folder path, size change ..)

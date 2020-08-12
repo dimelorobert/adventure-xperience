@@ -58,7 +58,8 @@ const adventuresSchema = Joi.object({
     .positive()
     .min(1)
     .required()
-    .error(helpers.errorGenerator('Por favor selecciona una categoria ', 400))
+    .error(helpers.errorGenerator('Por favor selecciona una categoria ', 400)),
+  start_date_event: Joi.date().format('YYYY-MM-DD').utc()
 });
 
 module.exports = {

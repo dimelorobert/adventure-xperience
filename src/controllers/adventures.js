@@ -19,40 +19,56 @@ let connection;
 const adventuresController = {
    create: async (request, response, next) => {
       try {
+         connection = await getConnection();
+
          await adventuresSchema.validateAsync(request.body);
          const {
             name,
             description,
             image,
+            image1,
+            image2,
+            image3,
             price,
             country,
             city,
             vacancy,
             isAvailable,
+            start_date_event,
             category_id
          } = request.body;
-         connection = await getConnection();
-         let savedFileName;
 
-         if (request.files && request.files.image) {
-            try {
-               let uploadImageBody = request.files.image;
-               savedFileName = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody);
-            } catch (error) {
-               return response.status(400).json({
-                  status: 'error',
-                  code: 400,
-                  error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
-               });
-            }
-         } else {
-            savedFileName = image;
-         }
+         let savedFileName;
+         const requestFilesImages = new Array(request.files.image, request.files.image1, request.files.image2, request.files.image3);
+         const imagesBody = new Array(image, image1, image2, image3);
+         const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
+         let folderPathAdventuresImages = path.join(adventureImagePath, `${nameProcessed}`)
+
+         for (const requestImage of requestFilesImages) {
+            if (request.files && requestImage) {
+               try {
+                  let uploadImageBody = requestImage;
+                  savedFileName = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody);
+               } catch (error) {
+                  return response.status(400).json({
+                     status: 'error',
+                     code: 400,
+                     error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
+                  });
+               };
+            } else {
+               for (const imageBody of imagesBody) {
+                  savedFileName = imageBody;
+               };
+               
+            };
+         };
+
 
          const [result] = await connection.query(`
-            INSERT INTO adventure(name, description, image, price, country, city, vacancy, isAvailable, creation_date, category_id)
-            VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ?);
-            `, [name, description, image, price, country, city, vacancy, isAvailable, dateNow, category_id]);
+            INSERT INTO adventures(name, description, image, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id)
+            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [name, description, savedFileName, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
 
          response.send({
             status: 200,
@@ -60,13 +76,14 @@ const adventuresController = {
                id: result.insertId,
                name,
                description,
-               image,
+               savedFileName,
                price,
                country,
                city,
                vacancy,
                isAvailable,
                creation_date: creating_date,
+               start_date_event,
                category_id
             },
             message: `La aventura con el id ${result.insertId} fue creada exitosamente`
