@@ -8,7 +8,7 @@ const router = routerx();
 
 
 router.post('/create', /*authentication.user, authentication.admin,*/ adventuresController.create); // User y Admin
-router.get('/get/:id', adventuresController.get); // Anonimo
+router.get('/:id', adventuresController.get); // Anonimo
 //router.get('/user/get/:id', adventureController.get); // Anonimo
 router.get('/list', adventuresController.list); // Anonimo
 router.put('/update/:id', /*authentication.user, authentication.admin,*/ adventuresController.update); // User y Admin

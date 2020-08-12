@@ -1,6 +1,10 @@
 'use strict';
 
 // Modulos Requeridos
+require('dotenv').config();
+const {
+  CATEGORY_UPLOADS_DIR
+} = process.env;
 const {
   getConnection
 } = require('../database');
@@ -11,26 +15,36 @@ const {
   helpers
 } = require('../helpers');
 const path = require('path');
-let dateNow = helpers.formatDateToDB(new Date());
-let creating_date = helpers.formatDateJSON(new Date());
-let categoryImagePath = path.join(__dirname, `../${process.env.CATEGORY_UPLOADS_DIR}`);
+const fs = require('fs').promises;
+const dateNow = helpers.formatDateToDB(new Date());
+const creating_date = helpers.formatDateJSON(new Date());
+const categoriesImagePath = path.join(__dirname, `../${CATEGORY_UPLOADS_DIR}`);
 let connection;
 
 const categoriesController = {
   create: async (request, response, next) => {
     try {
+
+      // we open connection to db
+      connection = await getConnection();
+
+      // we validate received data from body
       await categoriesSchema.validateAsync(request.body);
       const {
         name,
         image
       } = request.body;
-      connection = await getConnection();
-      let savedFileName;
 
+      // we processed the name received from body to create a path folder
+      const nameProcessed = name.toLowerCase().replace(" ", "-");
+      const categoriesNameFolder = path.join(categoriesImagePath, `${nameProcessed}`);
+
+      // process image (create folder path, size change ..)
+      let savedFileName;
       if (request.files && request.files.image) {
         try {
           let uploadImageBody = request.files.image;
-          savedFileName = await helpers.processAndSavePhoto(categoryImagePath, uploadImageBody);
+          savedFileName = await helpers.processAndSavePhoto(categoriesNameFolder, uploadImageBody);
         } catch (error) {
           return response.status(400).json({
             status: 'error',
@@ -38,21 +52,22 @@ const categoriesController = {
             error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
           });
         }
-
       } else {
         savedFileName = image;
       }
 
+      // save data into db 
       const [result] = await connection.query(`
-        INSERT INTO category(name, image, creation_date) 
-        VALUES(?, ?, ?);`, [name, image, dateNow]);
+        INSERT INTO categories (name, image, creation_date) 
+        VALUES( ?, ?, ?);`, [name, savedFileName, dateNow]);
 
+      // we send a json with the saved data
       response.send({
         status: 200,
         data: {
           id: result.insertId,
           name,
-          image,
+          savedFileName,
           creation_date: creating_date
         },
         message: `La categoria con el id ${result.insertId} fue creada exitosamente`
@@ -66,13 +81,48 @@ const categoriesController = {
       }
     }
   },
+  list: async (request, response, next) => {
+    try {
+      connection = await getConnection();
+      const [result] = await connection.query(`
+        SELECT id, name, image 
+        FROM categories 
+        LIMIT 4;`);
+
+      if (!result.length) {
+        return response.status(404).json({
+          status: 'error',
+          code: 400,
+          error: `No hay categorias para mostrar aún`
+        });
+      } else {
+        response.send({
+          status: 200,
+          data: result,
+          message: 'Lista de todas las categorias creadas'
+        });
+      }
+    } catch (error) {
+      next(error);
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   get: async (request, response, next) => {
     try {
+      connection = await getConnection();
       const {
         id
       } = request.params;
-      connection = await getConnection();
-      const [result] = await connection.query(`SELECT * FROM category WHERE id = ?`, [id]);
+
+      const [result] = await connection.query(`
+        SELECT name, image 
+        FROM categories 
+        WHERE id = ?`,
+        [id]);
+
       if (!result.length) {
         return response.status(400).json({
           status: 'error',
@@ -95,33 +145,10 @@ const categoriesController = {
       }
     }
   },
-  list: async (request, response, next) => {
-    try {
-      connection = await getConnection();
-      const [result] = await connection.query(`SELECT * FROM category LIMIT 4;`);
-      if (!result.length) {
-        return response.status(404).json({
-          status: 'error',
-          code: 400,
-          error: `No hay categorias para mostrar aún`
-        });
-      } else {
-        response.send({
-          status: 200,
-          data: result,
-          message: 'Lista de todas las categorias creadas'
-        });
-      }
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
+
   update: async (request, response, next) => {
     try {
+      connection = await getConnection();
       await categoriesSchema.validateAsync(request.body);
       const {
         name,
@@ -131,8 +158,11 @@ const categoriesController = {
         id
       } = request.params;
 
-      connection = await getConnection();
-      const [current] = await connection.query('SELECT image FROM category WHERE id=?', [id]);
+      const [current] = await connection.query(`
+        SELECT name, image
+        FROM categories 
+        WHERE id=?`,
+        [id]);
 
       if (!current.length) {
         return response.status(400).json({
@@ -140,17 +170,30 @@ const categoriesController = {
           code: 400,
           error: `La categoria con el id ${id} no existe`
         });
+      };
 
-      };
-      /*if (current[0].image) {
-        await helpers.deletePhoto(categoryImagePath, current[0].image);
-      };
+      const nameBodyProcessed = name.toLowerCase().split(' ').join('-');
+      const nameProcessedDB = current[0].name.toLowerCase().split(' ').join('-');
+      const categoriesNameOldDirPath = path.join(categoriesImagePath, `${nameProcessedDB}`);
+      const categoriesNameNewDirPath = path.join(categoriesImagePath, `${nameBodyProcessed}`);
+
+
+      if (current && current[0].image && current[0].name) {
+        await helpers.deletePhoto(categoriesNameOldDirPath, current[0].image);
+        await helpers.deleteFolder(categoriesNameOldDirPath);
+      } else {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          error: `La foto de la categoria con id ${id} no se pudo procesar correctamente`
+        });
+      }
 
       let savedFileName;
 
       if (request.files && request.files.image) {
         try {
-          savedFileName = await helpers.processAndSavePhoto(categoryImagePath, request.files.image);
+          savedFileName = await helpers.processAndSavePhoto(categoriesNameNewDirPath, request.files.image);
         } catch (error) {
           return await response.status(400).json({
             status: 'error',
@@ -160,15 +203,19 @@ const categoriesController = {
         }
       } else {
         savedFileName = current.image;
-      }*/
-      await connection.query(`UPDATE category SET name=?, image=?, modify_date=? WHERE id=?`, [name, image, dateNow, id]);
+      }
+      await connection.query(`
+        UPDATE categories 
+        SET name=?, image=?, modify_date=? 
+        WHERE id=?`,
+        [name, savedFileName, dateNow, id]);
 
       response.send({
         status: 200,
         data: {
           id,
           name,
-          image,
+          savedFileName,
           modify_date: creating_date,
         },
         message: `La categoria con el id ${id} fue modificada satisfactoriamente`
@@ -188,7 +235,10 @@ const categoriesController = {
       } = request.params;
       connection = await getConnection();
 
-      const [result] = await connection.query('SELECT image FROM category WHERE id=?', [id]);
+      const [result] = await connection.query(`
+        SELECT name, image 
+        FROM categories 
+        WHERE id=?`, [id]);
 
 
       if (!result.length) {
@@ -198,8 +248,12 @@ const categoriesController = {
         });
       };
 
+      const nameProcessedDB = result[0].name.toLowerCase().split(' ').join('-');
+      const categoriesNameFolder = path.join(categoriesImagePath, `${nameProcessedDB}`);
+
       if (result && result[0].image) {
-        await helpers.deletePhoto(categoryImagePath, result[0].image);
+        await helpers.deletePhoto(categoriesNameFolder, result[0].image);
+        await helpers.deleteFolder(categoriesNameFolder);
       } else {
         return response.status(400).json({
           status: 'error',
@@ -208,33 +262,11 @@ const categoriesController = {
         });
       }
 
-      await connection.query(` DELETE FROM category WHERE id=?`, [id]);
+      await connection.query(` DELETE FROM categories WHERE id=?`, [id]);
       response.send({
         status: 200,
         message: `La categoria con id ${id} ha sido borrada satisfactoriamente `
       });
-
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
-  activate: async (request, response, next) => {
-    try {
-
-    } catch (error) {
-      next(error);
-    } finally {
-      if (connection) {
-        connection.release();
-      }
-    }
-  },
-  deactivate: async (request, response, next) => {
-    try {
 
     } catch (error) {
       next(error);

@@ -66,6 +66,25 @@ const helpers = {
       return error;
     }
   },
+  createFolder: async (pathFolderName) => {
+    try {
+      fs.mkdirSync(process.cwd() + `${pathFolderName}`, {
+        recursive: true
+      });
+      console.log(`Directorio creado con exito`);
+    } catch (error) {
+      return error;
+    }
+  },
+
+  renameFolder: async (oldPathDirName, newPathDirName) => {
+    try {
+      fs.renameSync(oldPathDirName, newPathDirName);
+    } catch (error) {
+      return error;
+    }
+  },
+
   deleteFolder: async (pathFolder) => {
     try {
       fs.rmdir(`${pathFolder}`, {
@@ -75,6 +94,7 @@ const helpers = {
       return error;
     }
   }
+
 }
 module.exports = {
   helpers

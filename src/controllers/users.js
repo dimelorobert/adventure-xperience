@@ -36,7 +36,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
 const dateNow = helpers.formatDateToDB(new Date());
-let creating_date = helpers.formatDateJSON(new Date());
+const creating_date = helpers.formatDateJSON(new Date());
 
 
 let connection;
@@ -276,6 +276,8 @@ const usersController = {
   update: async (request, response, next) => {
 
     try {
+      connection = await getConnection();
+      
       await usersSchema.validateAsync(request.body);
       const {
         name,
@@ -291,7 +293,7 @@ const usersController = {
         id
       } = request.params;
 
-      connection = await getConnection();
+      
       const passwordDB = await bcrypt.hash(password, 10);
       const [current] = await connection.query(`
         SELECT image 
