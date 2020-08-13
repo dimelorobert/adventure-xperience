@@ -58,14 +58,8 @@ const helpers = {
 
 
     return savedFileName;
-  },
-  deletePhoto: async (pathImage, fileImage) => {
-    try {
-      await fsExtra.unlink(path.join(pathImage, fileImage));
-    } catch (error) {
-      return error;
-    }
-  },
+  }, 
+  
   createFolder: async (pathFolderName) => {
     try {
       fs.mkdirSync(process.cwd() + `${pathFolderName}`, {

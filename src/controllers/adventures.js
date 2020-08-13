@@ -1,6 +1,12 @@
 'use strict';
 
 // Modulos Requeridos
+require('dotenv').config();
+const {
+   PUBLIC_HOST,
+   ADVENTURE_VIEW_UPLOADS,
+   ADVENTURE_UPLOADS_DIR
+} = process.env;
 const {
    getConnection
 } = require('../database');
@@ -11,9 +17,10 @@ const {
    helpers
 } = require('../helpers');
 const path = require('path');
+const uuid = require('uuid');
 let dateNow = helpers.formatDateToDB(new Date());
 let creating_date = helpers.formatDateJSON(new Date());
-let adventureImagePath = path.join(__dirname, `../${process.env.ADVENTURE_UPLOADS_DIR}`);
+let adventureImagePath = path.join(__dirname, `../${ADVENTURE_UPLOADS_DIR}`);
 let connection;
 
 const adventuresController = {
@@ -39,36 +46,50 @@ const adventuresController = {
          } = request.body;
 
          let savedFileName;
-         const requestFilesImages = new Array(request.files.image, request.files.image1, request.files.image2, request.files.image3);
-         const imagesBody = new Array(image, image1, image2, image3);
-         const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
-         let folderPathAdventuresImages = path.join(adventureImagePath, `${nameProcessed}`)
+         let savedFileName1;
+         let savedFileName2;
+         let savedFileName3;
 
-         for (const requestImage of requestFilesImages) {
-            if (request.files && requestImage) {
-               try {
-                  let uploadImageBody = requestImage;
-                  savedFileName = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody);
-               } catch (error) {
-                  return response.status(400).json({
-                     status: 'error',
-                     code: 400,
-                     error: 'La imagen no ha sido procesada correctamente, por favor intentalo de nuevo'
-                  });
-               };
-            } else {
-               for (const imageBody of imagesBody) {
-                  savedFileName = imageBody;
-               };
-               
-            };
+         const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
+         const folderPathAdventuresImages = path.join(`${adventureImagePath}`, `${nameProcessed}`);
+
+
+         if (request.files && request.files.image && request.files.image1 && request.files.image2 && request.files.image3) {
+            try {
+               let uploadImageBody = request.files.image;
+               let uploadImageBody1 = request.files.image1;
+               let uploadImageBody2 = request.files.image2;
+               let uploadImageBody3 = request.files.image3;
+
+               savedFileName = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody);
+               savedFileName1 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody1);
+               savedFileName2 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody2);
+               savedFileName3 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody3);
+            } catch (error) {
+               return response.status(400).json({
+                  status: 'error',
+                  code: 400,
+                  error: 'La imagen #1 no ha sido procesada correctamente, por favor intentalo de nuevo'
+               });
+            }
+         } else {
+            savedFileName = image;
+            savedFileName1 = image1;
+            savedFileName2 = image2;
+            savedFileName3 = image3;
          };
 
 
+
          const [result] = await connection.query(`
-            INSERT INTO adventures(name, description, image, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id)
-            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [name, description, savedFileName, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
+            INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id)
+            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [name, description, savedFileName, savedFileName1, savedFileName2, savedFileName3, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
+
+         const imagesAdventuresViews = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName}`);
+         const imagesAdventuresViews1 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName1}`);
+         const imagesAdventuresViews2 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName2}`);
+         const imagesAdventuresViews3 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName3}`);
 
          response.send({
             status: 200,
@@ -76,7 +97,10 @@ const adventuresController = {
                id: result.insertId,
                name,
                description,
-               savedFileName,
+               image: imagesAdventuresViews,
+               image1: imagesAdventuresViews1,
+               image2: imagesAdventuresViews2,
+               image3: imagesAdventuresViews3,
                price,
                country,
                city,
@@ -103,7 +127,14 @@ const adventuresController = {
             id
          } = request.params;
          connection = await getConnection();
-         const [result] = await connection.query(`SELECT a.* , AVG(r.points) as averageAdventure FROM adventure a, review r WHERE a.id = r.adventure_id AND a.id =?`, [id]);
+         const [result] = await connection.query(`
+            SELECT a.* , 
+            AVG(r.points) as averageAdventure 
+            FROM adventures a, reviews r 
+            WHERE a.id = r.adventure_id 
+            AND a.id =?`,
+            [id]);
+         console.log(result);
 
          if (!result.length) {
             return response.status(400).json({

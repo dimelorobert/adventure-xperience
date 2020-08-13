@@ -6,7 +6,7 @@ const {
 	getConnection
 } = require('../database');
 const {
-	reviewSchema
+	reviewsSchema
 } = require('../validations');
 const {
 	helpers
@@ -21,14 +21,14 @@ const reviewsController = {
 			const {
 				id
 			} = request.params;
-			await reviewSchema.validateAsync(request.body);
+			await reviewsSchema.validateAsync(request.body);
 			const {
 				points,
 				comments
 			} = request.body;
 			connection = await getConnection();
 
-			const [adventure] = await connection.query(`SELECT id, name FROM adventure WHERE id=?`, [id]);
+			const [adventure] = await connection.query(`SELECT id, name FROM adventures WHERE id=?`, [id]);
 
 			if (!adventure.length) {
 				return response.status(404).json({
@@ -39,7 +39,7 @@ const reviewsController = {
 			}
 
 			const ip = request.ip
-			const [existingReview] = await connection.query(`SELECT id FROM review WHERE adventure_id=? AND ip=?`, [id, ip]);
+			const [existingReview] = await connection.query(`SELECT id FROM reviews WHERE adventure_id=? AND ip=?`, [id, ip]);
 
 			/*if (existingReview.length) {
 				return response.status(403).json({
@@ -49,7 +49,7 @@ const reviewsController = {
 				});
 			}*/
 
-			const [result] = await connection.query(`INSERT INTO review (adventure_id, points, comments, date_post, ip) VALUES(?, ?, ?, ?, ?);`, [id, points, comments, dateNow, ip]);
+			const [result] = await connection.query(`INSERT INTO reviews (adventure_id, points, comments, date_post, ip) VALUES(?, ?, ?, ?, ?);`, [id, points, comments, dateNow, ip]);
 
 			response.send({
 				status: 200,
@@ -72,7 +72,7 @@ const reviewsController = {
 			} = request.params;
 			connection = await getConnection();
 
-			const [reviews] = await connection.query(` SELECT * FROM review WHERE adventure_id=?`, [id]);
+			const [reviews] = await connection.query(` SELECT * FROM reviews WHERE adventure_id=?`, [id]);
 
 			if (!reviews.length) {
 				return response.status(404).json({
@@ -99,7 +99,7 @@ const reviewsController = {
 	list: async (request, response, next) => {
 		try {
 			connection = await getConnection();
-			const [result] = await connection.query(`SELECT * FROM review;`);
+			const [result] = await connection.query(`SELECT * FROM reviews;`);
 			if (!result.length) {
 				return response.status(404).json({
 					status: 'error',
@@ -133,7 +133,7 @@ const reviewsController = {
 			} = request.body;
 			connection = await getConnection();
 
-			const [review] = await connection.query(`SELECT id FROM review WHERE id=?`, [id]);
+			const [review] = await connection.query(`SELECT id FROM reviews WHERE id=?`, [id]);
 
 			if (!review.length) {
 				return response.status(404).json({
@@ -143,7 +143,7 @@ const reviewsController = {
 				});
 			}
 
-			await connection.query(`UPDATE review SET points=?, comments=?, date_post=? WHERE id=?`, [points, comments, dateNow, id]);
+			await connection.query(`UPDATE reviews SET points=?, comments=?, date_post=? WHERE id=?`, [points, comments, dateNow, id]);
 
 			response.send({
 				status: 200,
@@ -170,7 +170,7 @@ const reviewsController = {
 			} = request.params;
 			connection = await getConnection();
 
-			const [review] = await connection.query(`SELECT id FROM review WHERE id=?`, [id]);
+			const [review] = await connection.query(`SELECT id FROM reviews WHERE id=?`, [id]);
 
 			if (!review.length) {
 				return response.status(404).json({
@@ -180,7 +180,7 @@ const reviewsController = {
 				});
 			}
 
-			await connection.query(` DELETE FROM review WHERE id=?`, [id]);
+			await connection.query(` DELETE FROM reviews WHERE id=?`, [id]);
 			response.send({
 				status: 200,
 				message: `La votacion con id ${id} ha sido borrada con éxito`

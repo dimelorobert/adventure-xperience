@@ -7,7 +7,7 @@ const routerx = require('express-promise-router');
 const router = routerx();
 
 
-router.post('/adventure/:id', reviewsController.vote); // User y Admin
+router.post('/adventures/:id', reviewsController.vote); // User y Admin
 router.get('/voted/adventure/:id', reviewsController.get);
 //router.get('/voted/user/adventure/:id', reviewsController.get); // Anonimo
 router.get('/adventure/list', reviewsController.list); // Anonimo
