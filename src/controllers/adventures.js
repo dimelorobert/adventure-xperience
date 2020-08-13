@@ -49,22 +49,20 @@ const adventuresController = {
          let savedFileName1;
          let savedFileName2;
          let savedFileName3;
+         let imagesAdventuresViews;
+         let imagesAdventuresViews1;
+         let imagesAdventuresViews2;
+         let imagesAdventuresViews3;
 
          const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
          const folderPathAdventuresImages = path.join(`${adventureImagePath}`, `${nameProcessed}`);
 
 
-         if (request.files && request.files.image && request.files.image1 && request.files.image2 && request.files.image3) {
+         if (request.files && request.files.image ) {
             try {
                let uploadImageBody = request.files.image;
-               let uploadImageBody1 = request.files.image1;
-               let uploadImageBody2 = request.files.image2;
-               let uploadImageBody3 = request.files.image3;
-
                savedFileName = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody);
-               savedFileName1 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody1);
-               savedFileName2 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody2);
-               savedFileName3 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody3);
+               imagesAdventuresViews = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName}`);
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -74,22 +72,64 @@ const adventuresController = {
             }
          } else {
             savedFileName = image;
-            savedFileName1 = image1;
-            savedFileName2 = image2;
-            savedFileName3 = image3;
          };
 
+         if (request.files && request.files.image1) {
+            try {
+               let uploadImageBody1 = request.files.image1;
+               savedFileName1 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody1);
+               imagesAdventuresViews1 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName1}`);
+            } catch (error) {
+               return response.status(400).json({
+                  status: 'error',
+                  code: 400,
+                  error: 'La imagen #1 no ha sido procesada correctamente, por favor intentalo de nuevo'
+               });
+            }
+         } else {
+            savedFileName1 = image1;
+         };
+         
+         if (request.files && request.files.image2) {
+            try {
+               let uploadImageBody2 = request.files.image2;
+               savedFileName2 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody2);
+               imagesAdventuresViews2 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName2}`);
 
+               if (request.files && request.files.image2 === undefined) {
+                  savedFileName2 = NULL;
+               }
+            } catch (error) {
+               return response.status(400).json({
+                  status: 'error',
+                  code: 400,
+                  error: 'La imagen #1 no ha sido procesada correctamente, por favor intentalo de nuevo'
+               });
+            }
+         } else {
+            savedFileName2 = image2;
+         };
+
+         if (request.files && request.files.image3) {
+            try {
+               let uploadImageBody3 = request.files.image3;
+               savedFileName3 = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody3);
+               imagesAdventuresViews3 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName3}`);
+            } catch (error) {
+               return response.status(400).json({
+                  status: 'error',
+                  code: 400,
+                  error: 'La imagen #1 no ha sido procesada correctamente, por favor intentalo de nuevo'
+               });
+            }
+         } else {
+            savedFileName3 = image3;
+         };
 
          const [result] = await connection.query(`
             INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id)
             VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [name, description, savedFileName, savedFileName1, savedFileName2, savedFileName3, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
-
-         const imagesAdventuresViews = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName}`);
-         const imagesAdventuresViews1 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName1}`);
-         const imagesAdventuresViews2 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName2}`);
-         const imagesAdventuresViews3 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName3}`);
+            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
 
          response.send({
             status: 200,
@@ -110,7 +150,7 @@ const adventuresController = {
                start_date_event,
                category_id
             },
-            message: `La aventura con el id ${result.insertId} fue creada exitosamente`
+            message: `La aventura  ${name} con el id ${result.insertId} fue creada exitosamente`
          });
 
       } catch (error) {
