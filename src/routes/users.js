@@ -24,7 +24,6 @@ router.get('/:id/send-new-code', usersController.sendCode); // Anonimo
 router.post('/:id/recovery/password', /*authentication.user, authentication.admin,*/ usersController.recoveryPassword); // user y admin
 router.post('/login', usersController.login); // Anonimo
 router.get('/:id/deactivate', usersController.deactivate); //admin
-
 router.post('/:id/password', userIsAuthenticated, userIsAdmin, usersController.changePassword); // user y admin
 
 module.exports = router;

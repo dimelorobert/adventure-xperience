@@ -63,14 +63,14 @@ async function userIsAuthenticated(request, response, next) {
             id,
             iat
         } = tokenPayload;
-        console.log(tokenPayload);
+        //console.log(tokenPayload);
 
         connection = await getConnection();
 
         const [
             result
         ] = await connection.query(
-            'SELECT last_password_update FROM user WHERE id=?',
+            'SELECT last_password_update FROM users WHERE id=?',
             [id]
         );
 

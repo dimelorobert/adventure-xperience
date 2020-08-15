@@ -120,7 +120,7 @@ const usersController = {
 
       // encrypt id
       // const idUuid = uuid.v4(newUserData.insertId);
-      /*
+      
       // we send an email with the activation link for user account 
       const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
 
@@ -166,7 +166,7 @@ const usersController = {
           code: 500,
           error: `No se pudo enviar el email debido a un error en el servidor`
         });
-      }*/
+      }
 
       // if everything ok, we send all data to json format
       response.send({

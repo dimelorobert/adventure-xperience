@@ -5,7 +5,11 @@ require('dotenv').config();
 const {
    PUBLIC_HOST,
    ADVENTURE_VIEW_UPLOADS,
-   ADVENTURE_UPLOADS_DIR
+   ADVENTURE_UPLOADS_DIR,
+   SECRET_KEY,
+   SERVICE_EMAIL,
+   ADMIN_EMAIL,
+   PASSWORD_ADMIN_EMAIL
 } = process.env;
 const {
    getConnection
@@ -17,8 +21,9 @@ const {
    helpers
 } = require('../helpers');
 const path = require('path');
-const uuid = require('uuid');
+const jwt = require('jsonwebtoken');
 let dateNow = helpers.formatDateToDB(new Date());
+const nodemailer = require('nodemailer');
 let creating_date = helpers.formatDateJSON(new Date());
 let adventureImagePath = path.join(__dirname, `../${ADVENTURE_UPLOADS_DIR}`);
 let connection;
@@ -45,6 +50,35 @@ const adventuresController = {
             category_id
          } = request.body;
 
+
+
+         const {
+            authorization
+         } = request.headers;
+
+
+         let decoded;
+
+         try {
+            decoded = jwt.verify(authorization, SECRET_KEY);
+         } catch (error) {
+            return response.status(401).json({
+               status: 'error',
+               code: 401,
+               error: `token incorrecto`
+            });
+         }
+
+         // we get the user id 
+         const {
+            tokenPayload
+         } = decoded;
+         const {
+            id,
+            role
+         } = tokenPayload;
+
+         // processing photos
          let savedFileName;
          let savedFileName1;
          let savedFileName2;
@@ -58,7 +92,7 @@ const adventuresController = {
          const folderPathAdventuresImages = path.join(`${adventureImagePath}`, `${nameProcessed}`);
 
 
-         if (request.files && request.files.image ) {
+         if (request.files && request.files.image) {
             try {
                let uploadImageBody = request.files.image;
                savedFileName = await helpers.processAndSavePhoto(folderPathAdventuresImages, uploadImageBody);
@@ -89,7 +123,7 @@ const adventuresController = {
          } else {
             savedFileName1 = image1;
          };
-         
+
          if (request.files && request.files.image2) {
             try {
                let uploadImageBody2 = request.files.image2;
@@ -97,7 +131,7 @@ const adventuresController = {
                imagesAdventuresViews2 = path.join(`${PUBLIC_HOST}`, `${ADVENTURE_VIEW_UPLOADS}`, `${nameProcessed}`, `${savedFileName2}`);
 
                if (request.files && request.files.image2 === undefined) {
-                  savedFileName2 = NULL;
+                  savedFileName2 = null;
                }
             } catch (error) {
                return response.status(400).json({
@@ -126,15 +160,96 @@ const adventuresController = {
             savedFileName3 = image3;
          };
 
-         const [result] = await connection.query(`
-            INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id)
-            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id]);
+         const [newAdventureData] = await connection.query(`
+            INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id, user_id)
+            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, dateNow, start_date_event, category_id, request.headers.authorization.id]);
+
+         // we check if the email exist into db
+         const [dataUser] = await connection.query(`
+            SELECT name, surname, email 
+            FROM users 
+            WHERE id=?`,
+            [id]);
+
+         let activateAdventure = 0;
+         if (role === 'admin') {
+            activateAdventure = 1;
+
+            await connection.query(`
+            UPDATE adventures 
+            SET isActive=? 
+            WHERE id=?
+         `, [activateAdventure, newAdventureData.insertId]);
+         } else {
+            if (!dataUser.length.error) {
+               try {
+                  const transporter = nodemailer.createTransport({
+                     service: SERVICE_EMAIL,
+                     auth: {
+                        user: ADMIN_EMAIL,
+                        pass: PASSWORD_ADMIN_EMAIL
+                     }
+                  });
+                  const mailOptions = {
+                     from: ADMIN_EMAIL,
+                     to: `${dataUser[0].email}`,
+                     subject: `Tu aventura de aventura Xperience esta pendiente de revisión`,
+                     text: `En breves recibiras un correo con un link para activar la aventura que acabas de crear `,
+                     html: `
+            <div>
+              <h1> Aventura En Revisión </h1>
+              <p> Hola ${dataUser[0].name} ${dataUser[0].surname} :</p>
+              <p> En breves recibiras un correo con un link para activar la aventura que acabas de crear</p>
+              <br>
+              <h2>Datos de la aventura creada: </h2>
+              <br>
+              <spa> Id de la aventura: ${newAdventureData.insertId}</spa>
+              <br>
+              <img src="${imagesAdventuresViews}">
+              <br>
+              <spa> Nombre: ${name}</spa>
+              <br>
+              <spa> Descripción: ${description}</spa>
+              <br>
+              <spa> Precio: ${price}</spa>
+              <br>
+              <spa> Vacantes: ${vacancy}</spa>
+              <br>
+              <spa> País - Ciudad: ${country} - ${city}</spa>
+              <br>
+              <spa> Fecha del evento: ${start_date_event}</spa>
+              <br>
+            
+            </div>`
+                  };
+
+                  transporter.sendMail(mailOptions, (error, info) => {
+                     response.status(200).json(request.body);
+                  });
+
+               } catch (error) {
+                  console.log(error);
+                  if (error) {
+                     response.status(500).send(error.message);
+                  }
+               }
+
+            } else {
+               return response.status(500).json({
+                  status: 'error',
+                  code: 500,
+                  error: `No se pudo enviar el email debido a un error en el servidor`
+               });
+            }
+
+         }
+
 
          response.send({
             status: 200,
             data: {
-               id: result.insertId,
+               id: newAdventureData.insertId,
                name,
                description,
                image: imagesAdventuresViews,
@@ -146,11 +261,13 @@ const adventuresController = {
                city,
                vacancy,
                isAvailable,
+               isActive: activateAdventure,
                creation_date: creating_date,
                start_date_event,
-               category_id
+               category_id,
+               user_id: id
             },
-            message: `La aventura  ${name} con el id ${result.insertId} fue creada exitosamente`
+            message: `La aventura  ${name} con el id ${newAdventureData.insertId} fue creada exitosamente`
          });
 
       } catch (error) {
@@ -161,49 +278,28 @@ const adventuresController = {
          }
       }
    },
-   get: async (request, response, next) => {
-      try {
-         const {
-            id
-         } = request.params;
-         connection = await getConnection();
-         const [result] = await connection.query(`
-            SELECT a.* , 
-            AVG(r.points) as averageAdventure 
-            FROM adventures a, reviews r 
-            WHERE a.id = r.adventure_id 
-            AND a.id =?`,
-            [id]);
-         console.log(result);
 
-         if (!result.length) {
-            return response.status(400).json({
-               status: 'error',
-               code: 400,
-               error: `La aventura con id ${id} no existe,por favor intentalo de nuevo`
-            });
-         } else {
-            let [adventureResult] = result;
-            response.send({
-               status: 200,
-               data: {
-                  ...adventureResult
-               },
-               message: `La busqueda de la aventura con el id ${adventureResult.id} fue realizada con exito`
-            });
-         }
-      } catch (error) {
-         next(error);
-      } finally {
-         if (connection) {
-            connection.release();
-         }
-      }
-   },
    list: async (request, response, next) => {
       try {
          connection = await getConnection();
-         const [result] = await connection.query(`SELECT * FROM adventure;`);
+         // const [result] = await connection.query(`
+         //    SELECT id, name, description, image, price, country, city, vacancy, isAvailable, start_date_event 
+         //    FROM adventures;`);
+
+         /*const [result] = await connection.query(`
+            SELECT name, description, image, price, country, city, vacancy, isAvailable, isActive, start_date_event 
+            FROM adventures 
+            WHERE isActive=1;
+         `);*/
+         const {
+            search,
+            filter
+         } = req.query;
+
+         let result;
+
+         if (search && filter === 'name') {}
+
          if (!result.length) {
             return response.status(404).json({
                status: 'error',
@@ -225,6 +321,50 @@ const adventuresController = {
          }
       }
    },
+   get: async (request, response, next) => {
+      try {
+         connection = await getConnection();
+
+         const {
+            id
+         } = request.params;
+
+         /*const [result] = await connection.query(`
+            SELECT a.id, a.name, a.description, a.image, a.price, a.country, a.city, a.vacancy, a.isAvailable, a.start_date_event,
+            AVG(r.points) as averageAdventure 
+            FROM adventures a, reviews r 
+            WHERE a.id = r.adventure_id 
+            AND a.id =?;`,
+            [id]);
+         console.log(result);*/
+
+         if (!result.length) {
+
+            return response.status(400).json({
+               status: 'error',
+               code: 400,
+               error: `La aventura con id ${id} no existe,por favor intentalo de nuevo`
+            });
+         }
+
+         let [adventureResult] = result;
+         response.send({
+            status: 200,
+            data: {
+               ...adventureResult
+            },
+            message: `La busqueda de la aventura con el id ${adventureResult.id} fue realizada con exito`
+         });
+
+      } catch (error) {
+         next(error);
+      } finally {
+         if (connection) {
+            connection.release();
+         }
+      }
+   },
+
    update: async (request, response, next) => {
       try {
          await adventuresSchema.validateAsync(request.body);
