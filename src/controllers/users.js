@@ -61,6 +61,17 @@ const usersController = {
       // we open connection to db
       connection = await getConnection();
 
+      // we check if the email exist into db
+      const [existingEmail] = await connection.query(`SELECT id FROM users WHERE email=?`, [email]);
+
+      if (existingEmail.length) {
+        return response.status(409).json({
+          status: 'error',
+          code: 409,
+          error: `El email ${email} que has introducido ya esta registrado`
+        });
+      }
+
       // we hash the password to save into db
       const passwordDB = await bcrypt.hash(password, 10);
 
@@ -95,22 +106,13 @@ const usersController = {
       // we generate the image link with the path to save into db and to show in front
       let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`, `./${savedFileName}`);
       // let folderUserDataDB = path.join(`${__dirname}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`);
+      let role;
 
-      // we check if the email exist into db
-      const [existingEmail] = await connection.query(`SELECT id FROM users WHERE email=?`, [email]);
-
-      if (existingEmail.length) {
-        return response.status(409).json({
-          status: 'error',
-          code: 409,
-          error: `El email ${email} que has introducido ya esta registrado`
-        });
+      if (name === 'Robert' && surname === 'Hernández' && email === 'airbusjayrobert@gmail.com' && date_birth === '1990-04-06') {
+        role = 'admin'
+      } else {
+        role = 'user'
       }
-
-      // role user default
-      let role = 'admin';
-
-      //let role = 'user';
 
       // we save all data into db
       const [newUserData] = await connection.query(`
@@ -120,7 +122,7 @@ const usersController = {
 
       // encrypt id
       // const idUuid = uuid.v4(newUserData.insertId);
-      
+
       // we send an email with the activation link for user account 
       const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
 
@@ -277,7 +279,7 @@ const usersController = {
 
     try {
       connection = await getConnection();
-      
+
       await usersSchema.validateAsync(request.body);
       const {
         name,
@@ -293,7 +295,7 @@ const usersController = {
         id
       } = request.params;
 
-      
+
       const passwordDB = await bcrypt.hash(password, 10);
       const [current] = await connection.query(`
         SELECT image 

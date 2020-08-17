@@ -58,11 +58,11 @@ const helpers = {
 
 
     return savedFileName;
-  }, 
-  
+  },
+
   createFolder: async (pathFolderName) => {
     try {
-      fs.mkdirSync(process.cwd() + `${pathFolderName}`, {
+      await fs.mkdirSync(process.cwd() + `${pathFolderName}`, {
         recursive: true
       });
       console.log(`Directorio creado con exito`);
@@ -73,7 +73,14 @@ const helpers = {
 
   renameFolder: async (oldPathDirName, newPathDirName) => {
     try {
-      fs.renameSync(oldPathDirName, newPathDirName);
+      await fs.renameSync(oldPathDirName, newPathDirName);
+    } catch (error) {
+      return error;
+    }
+  },
+  deletePhoto: async (pathImage, fileImage) => {
+    try {
+      await fs.unlink(path.join(pathImage, fileImage));
     } catch (error) {
       return error;
     }
@@ -81,7 +88,7 @@ const helpers = {
 
   deleteFolder: async (pathFolder) => {
     try {
-      fs.rmdir(`${pathFolder}`, {
+      await fs.rmdir(`${pathFolder}`, {
         recursive: true
       })
     } catch (error) {
