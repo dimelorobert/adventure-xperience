@@ -32,7 +32,11 @@ const cartsController = {
    create: async (request, response, next) => {
       try {
          connection = await getConnection();
-         const { total_price, adventure_id} = request.body;
+         const {
+            total_price,
+            adventure_id,
+            paid
+         } = request.body;
          const {
             tokenPayload
          } = request.authorization;
@@ -40,24 +44,74 @@ const cartsController = {
          const {
             id
          } = tokenPayload;
-         const [newBooking] = await connection.query(`
-            INSERT INTO cart(total_price, user_id, purchased_date, paid, adventure_id)
-            VALUES(?, ? , CURRENT_TIMESTAMP(), 'reservado', ?)`,[total_price,id,adventure_id]
-         
-            
-         );
-         
 
+
+         const [adventureSelected] = await connection.query(`
+            SELECT name, country, city 
+            FROM adventures 
+            WHERE id=?`, [adventure_id]);
+
+         if (!adventureSelected.length) {
+            return response.status(400).json({
+               status: 'error',
+               code: 400,
+               error: `La aventura con el id ${adventure_id} no existe`
+            });
+         }
+
+         const [destructuringNameCountryCity] = adventureSelected;
+         const {
+            name,
+            country,
+            city
+         } = destructuringNameCountryCity;
+
+         await connection.query(`
+            UPDATE adventures
+            SET date_selected=CURRENT_TIMESTAMP() 
+            WHERE id=?;`, [adventure_id]);
+
+
+         if (paid === 'reservado') {
+            const [newBooking] = await connection.query(`
+               INSERT INTO cart(purchased_date, date_booking, total_price, paid, user_id, adventure_id)
+               VALUES(null, CURRENT_TIMESTAMP(), ?, 'reservado', ?, ? );`,
+               [total_price, id, adventure_id]);
+
+         } else if (paid === 'pagado') {
+            const [newBooking] = await connection.query(`
+            INSERT INTO cart(purchased_date, date_booking, total_price, paid, user_id, adventure_id)
+            VALUES(CURRENT_TIMESTAMP(), null,  ?, 'reservado', ?, ? );
+            `, [total_price, id, adventure_id]);
+
+         } else {
+            return response.status(404).json({
+               status: 'error',
+               code: 404,
+               error: 'No ha sido posible efectuar la reserva o la compra de la aventura seleccionada'
+            });
+         }
          response.send({
             status: 200,
-            message: `La reserva esta hecha `
+            data: {
+               adventure_id,
+               adventure: name,
+               city_country: `${city} - ${country}`,
+               price: total_price,
+               paid
+            },
+            message: `La averntura ${name} en ${city} - ${country} fue ${paid} con éxito`
          });
 
       } catch (error) {
-         console.log(error);
+         next(error);
+      } finally {
+         if (connection) {
+            connection.release();
+         }
       }
+
    }
-   
 }
 module.exports = {
    cartsController
