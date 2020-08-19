@@ -12,7 +12,7 @@ const {
 } = require('../middlewares/auth')
 
 
-router.post('/create', /*userIsAuthenticated,*/ adventuresController.create); // User y Admin
+router.post('/create', userIsAuthenticated, adventuresController.create); // User y Admin
 router.get('/list', adventuresController.list); // Anonimo
 router.get('/:id', adventuresController.get); // Anonimo
 //router.get('/user/get/:id', adventureController.get); // Anonimo

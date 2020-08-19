@@ -30,14 +30,10 @@ const usersSchema = Joi.object().keys({
   date_birth: JoiAge.date().required().error(helpers.errorGenerator('Introduce tu fecha de nacimiento', 400)),
   country: Joi.string()
     .max(30)
-    .required()
     .error(helpers.errorGenerator('El campo país es obligatorio, introduce un país', 400)),
   city: Joi.string()
     .max(30)
-    .required()
     .error(helpers.errorGenerator('El campo ciudad es obligatorio, introduce un ciudad', 400)),
-
-
   email: Joi.string()
     .email()
     .required()

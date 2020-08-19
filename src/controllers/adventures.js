@@ -73,8 +73,7 @@ const adventuresController = {
             tokenPayload
          } = decoded;
          const {
-            id,
-            role
+            id
          } = tokenPayload;
 
 
@@ -165,7 +164,7 @@ const adventuresController = {
          const [newAdventureData] = await connection.query(`
             INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, isActive, creation_date, start_date_event, category_id, user_id)
             VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, activateAdventure, dateNow, start_date_event, category_id, request.headers.authorization.id]);
+            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, activateAdventure, dateNow, start_date_event, category_id, id]);
 
 
 
@@ -269,8 +268,8 @@ const adventuresController = {
                isActive: activateAdventure,
                creation_date: creating_date,
                start_date_event,
-               category_id,
-               user_id: id
+               category_id //,
+               //user_id: id
             },
             message: `La aventura  ${name} con el id ${newAdventureData.insertId} fue creada exitosamente`
          });
