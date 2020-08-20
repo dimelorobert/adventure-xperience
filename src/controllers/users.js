@@ -58,6 +58,9 @@ const usersController = {
         image
       } = request.body;
 
+      const capitalizeName = await helpers.capitalize(name);
+      const capitalizeSurname = await helpers.capitalize(surname);
+
       // we open connection to db
       connection = await getConnection();
 
@@ -118,7 +121,7 @@ const usersController = {
       const [newUserData] = await connection.query(`
         INSERT INTO users(name, surname, date_birth, country, city, email, role, password, last_password_update, image, user_folder, creation_date, ip, reg_Code)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [name, surname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, userImagePath, dateNow, request.ip, regCode]);
+        [capitalizeName, capitalizeSurname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, userImagePath, dateNow, request.ip, regCode]);
 
       // encrypt id
       // const idUuid = uuid.v4(newUserData.insertId);
@@ -175,8 +178,8 @@ const usersController = {
         status: 200,
         data: {
           id: newUserData.insertId,
-          name,
-          surname,
+          name: capitalizeName,
+          surname: capitalizeSurname,
           date_birth,
           country,
           city,

@@ -18,6 +18,9 @@ const {
 const {
   newPasswordSchema
 } = require('./changePassword');
+const {
+  cartSchema
+} = require('./cart');
 
 module.exports = {
   usersSchema,
@@ -25,5 +28,6 @@ module.exports = {
   adventuresSchema,
   reviewsSchema,
   loginSchema,
-  newPasswordSchema
+  newPasswordSchema,
+  cartSchema
 };

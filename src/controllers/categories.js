@@ -37,6 +37,7 @@ const categoriesController = {
 
       // we processed the name received from body to create a path folder
       const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
+      const capitalizeName = await helpers.capitalize(name);
       const categoriesNameFolder = path.join(categoriesImagePath, `${nameProcessed}`);
 
       // process image (create folder path, size change ..)
@@ -59,14 +60,14 @@ const categoriesController = {
       // save data into db 
       const [result] = await connection.query(`
         INSERT INTO categories (name, image, creation_date) 
-        VALUES( ?, ?, ?);`, [name, savedFileName, dateNow]);
+        VALUES( ?, ?, ?);`, [capitalizeName, savedFileName, dateNow]);
 
       // we send a json with the saved data
       response.send({
         status: 200,
         data: {
           id: result.insertId,
-          name,
+          name: capitalizeName,
           savedFileName,
           creation_date: creating_date
         },

@@ -15,7 +15,7 @@ const categoriesSchema = Joi.object({
     .trim()
     .error(
       helpers.errorGenerator(
-        'Please, this field is required and cannot be longer than 60 characters.',
+        'El campo nombre es requerido por tanto no puede ir vacio ni exceder max de 60 caracteres.',
         400
       )
     ),

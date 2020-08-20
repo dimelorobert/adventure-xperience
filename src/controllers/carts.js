@@ -3,8 +3,6 @@
 // Modulos Requeridos
 require('dotenv').config();
 const {
-	PUBLIC_HOST,
-	SECRET_KEY,
 	PUBLIC_UPLOADS,
 	LOGO_PATH,
 	SERVICE_EMAIL,
@@ -28,7 +26,8 @@ const cartsController = {
 			const {
 				total_price,
 				adventure_id,
-				status
+				status,
+				quantity,
 			} = request.body;
 			const {
 				tokenPayload
@@ -45,7 +44,7 @@ const cartsController = {
             WHERE id=?`, [id]);
 
 			const [adventureSelected] = await connection.query(`
-            SELECT name, country, city , start_date_event 
+            SELECT name, country, city , start_date_event, vacancy, isAvailable
             FROM adventures 
             WHERE id=?`, [adventure_id]);
 
@@ -62,8 +61,27 @@ const cartsController = {
 				name,
 				country,
 				city,
-				start_date_event
+				start_date_event,
+				vacancy,
+				isAvailable
 			} = destructuringNameCountryCity;
+
+			if (isAvailable === 'no disponible' || vacancy === 0) {
+
+				return response.status(404).json({
+					status: 'error',
+					code: 404,
+					error: 'No ha sido posible efectuar la reserva o la compra de la aventura seleccionada por que no esta disponible'
+				});
+			}
+
+			if (quantity > vacancy) {
+				return response.status(404).json({
+					status: 'error',
+					code: 404,
+					error: 'Oops...La cantidad de plazas seleccionadas excede el numero de plazas disponibles, verifica tu selección e intentalo de nuevo'
+				});
+			}
 
 			await connection.query(`
             UPDATE adventures
@@ -83,11 +101,18 @@ const cartsController = {
 
 			} else if (status === 'pagada') {
 
+				let vacancyStock = vacancy - Number(quantity);
+
+				await connection.query(`
+            UPDATE adventures
+            SET vacancy=?
+            WHERE id=?;`, [vacancyStock, adventure_id]);
+
 				bookingPay = 'compra';
 				[booking] = await connection.query(`
-               INSERT INTO cart(purchased_date, date_booking, total_price, status, user_id, adventure_id)
-               VALUES(CURRENT_TIMESTAMP(), null,  ?, 'pagada', ?, ? );`,
-					[total_price, id, adventure_id]);
+               INSERT INTO cart(quantity, purchased_date, date_booking, total_price, status, user_id, adventure_id)
+               VALUES(?,CURRENT_TIMESTAMP(), null,  ?, 'pagada', ?, ? );`,
+					[quantity, total_price, id, adventure_id]);
 
 			} else {
 				return response.status(404).json({
@@ -103,7 +128,7 @@ const cartsController = {
 			const [existingEmail] = await connection.query(`SELECT email FROM users WHERE id=?`, [id]);
 
 			const pathImageEmail = path.join(__dirname, `../${PUBLIC_UPLOADS}`, `${LOGO_PATH}`);
-			
+
 
 			if (existingEmail.length) {
 				try {
@@ -124,14 +149,16 @@ const cartsController = {
                <img src="cid:logo" alt="Logo Aventura Xperience"> <h1><strong>Aventura</strong> Xperience</h1>
               	<h2> Ticket de ${bookingPay} Nº.ticket: ${booking.insertId} </h2>
              	<p> Hola ${user[0].name} ${user[0].surname}:</p>
-              <p> Has efectuado la ${bookingPay} de la siguiente aventura</p>
+              <p> Has efectuado la ${bookingPay} de ${quantity} plaza(s) en la siguiente aventura: </p>
               <h3>Datos de la aventura creada: </h3>
               <br>
               <spa> Id de la aventura: ${adventure_id}</spa>
               <br> 
               <spa> Id usuario: ${id}</spa>
               <br>
-              <spa> nombre: ${name}</spa>
+				  <spa> nombre: ${name}</spa>
+				  <br>
+              <spa> Plazas compradas: ${quantity}</spa>
               <br>
               <spa> Precio: ${total_price}</spa>
               <br>

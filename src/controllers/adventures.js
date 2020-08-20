@@ -88,6 +88,7 @@ const adventuresController = {
          let imagesAdventuresViews3;
 
          const nameProcessed = name.toLowerCase().toLowerCase().split(' ').join('-');
+         const capitalizeName = await helpers.capitalize(name);
          const folderPathAdventuresImages = path.join(`${adventureImagePath}`, `${nameProcessed}`);
 
 
@@ -164,7 +165,7 @@ const adventuresController = {
          const [newAdventureData] = await connection.query(`
             INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, isActive, creation_date, start_date_event, category_id, user_id)
             VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [name, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, activateAdventure, dateNow, start_date_event, category_id, id]);
+            `, [capitalizeName, description, imagesAdventuresViews, imagesAdventuresViews1, imagesAdventuresViews2, imagesAdventuresViews1, price, country, city, vacancy, isAvailable, activateAdventure, dateNow, start_date_event, category_id, id]);
 
 
 
@@ -254,7 +255,7 @@ const adventuresController = {
             status: 200,
             data: {
                id: newAdventureData.insertId,
-               name,
+               name: capitalizeName,
                description,
                image: imagesAdventuresViews,
                image1: imagesAdventuresViews1,
