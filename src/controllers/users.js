@@ -104,7 +104,11 @@ const usersController = {
         try {
           let uploadImageBody = request.files.image;
           // we define location path and image size values
-          savedFileName = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
+          let savedFileNameProcess = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
+
+          savedFileName = path.join(`./uploads/users/`, savedFileNameProcess);
+
+          console.log(savedFileName);
         } catch (error) {
           return response.status(400).json({
             status: 'error',
@@ -114,20 +118,20 @@ const usersController = {
         }
 
       } else {
-        if (!request.files  || image === null || image === undefined) {
+        if (!request.files || image === null || image === undefined) {
           if (genre === 'Hombre') {
-            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
           } else if (genre === 'Mujer') {
-            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_WOMEN}`);
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_WOMEN}`);
           } else {
-            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_OTHER}`);
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_OTHER}`);
           }
         } else {
           savedFileName = image;
 
         }
-        let imageprueba = path.join(`${PUBLIC_HOST}`, `../${PUBLIC_UPLOADS}`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
-        console.log('savedfile:', imageprueba);
+        let pathImage = path.join(`/uploads/users/`, `${savedFileName}`);
+        console.log('savedfile:', pathImage);
 
       }
       // we generate the image link with the path to save into db and to show in front

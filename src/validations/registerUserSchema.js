@@ -52,6 +52,7 @@ const registerUsersSchema = Joi.object().keys({
         400
       )
     ),
+  acept_terms: Joi.any(),
 
   image: Joi.any(),
 
