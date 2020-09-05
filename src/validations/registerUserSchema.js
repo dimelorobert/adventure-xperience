@@ -6,7 +6,7 @@ const {
   helpers
 } = require('../helpers');
 
-const usersSchema = Joi.object().keys({
+const registerUsersSchema = Joi.object().keys({
   name: Joi.string()
     .min(3)
     .max(30)
@@ -28,6 +28,9 @@ const usersSchema = Joi.object().keys({
       )
     ),
   date_birth: JoiAge.date().error(helpers.errorGenerator('Introduce tu fecha de nacimiento', 400)),
+  genre: Joi.string()
+    .required()
+    .error(helpers.errorGenerator('El campo genero es obligatorio, elige un genero', 400)),
   country: Joi.string()
     .max(30)
     .error(helpers.errorGenerator('El campo país es obligatorio, introduce un país', 400)),
@@ -59,5 +62,5 @@ const usersSchema = Joi.object().keys({
 });
 
 module.exports = {
-  usersSchema
+  registerUsersSchema
 };

@@ -18,7 +18,13 @@ const cartSchema = Joi.object({
          helpers.errorGenerator(
             'Por favor , selecciona una opción',
             400
-         ))
+         )),
+   adventure_id: Joi.number()
+      .min(1)
+      .positive()
+      .required()
+      .error(helpers.errorGenerator(`Id erroneo`, 400)),
+
 });
 
 module.exports = {

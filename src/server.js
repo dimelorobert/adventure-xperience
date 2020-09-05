@@ -24,6 +24,7 @@ app.use(fileUpload());
 app.use('/', router);
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 // Configurar cabeceras y cors
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -49,7 +50,7 @@ app.use((request, response) => {
   response.status(404).send({
     status: 'error',
     code: 404,
-    message: '❌ Page not found!😢'
+    message: '❌ Ooops...Pagina no encontrada!😢'
   });
 });
 

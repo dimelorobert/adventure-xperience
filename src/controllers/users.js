@@ -5,11 +5,17 @@ require('dotenv').config();
 const {
   SECRET_KEY,
   PUBLIC_HOST,
+  PUBLIC_UPLOADS,
+  PROFILE_IMAGE_DEFAULT_MEN,
+  PROFILE_IMAGE_DEFAULT_WOMEN,
+  PROFILE_IMAGE_DEFAULT_OTHER,
+  LOGIN_HOST_VUE,
   USERS_UPLOADS_DIR,
   USERS_VIEW_UPLOADS,
   SERVICE_EMAIL,
   ADMIN_EMAIL,
-  PASSWORD_ADMIN_EMAIL
+  PASSWORD_ADMIN_EMAIL,
+  LOGO_PATH
 } = process.env;
 
 const {
@@ -21,7 +27,9 @@ const jwt = require('jsonwebtoken');
 const {
   usersSchema,
   loginSchema,
-  newPasswordSchema
+  newPasswordSchema,
+  registerUsersSchema,
+  updateDataUsersSchema
 } = require('../validations');
 
 const {
@@ -34,6 +42,7 @@ const path = require('path');
 
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const validations = require('../validations');
 
 const dateNow = helpers.formatDateToDB(new Date());
 const creating_date = helpers.formatDateJSON(new Date());
@@ -46,11 +55,12 @@ const usersController = {
     try {
 
       // we validate data body received 
-      await usersSchema.validateAsync(request.body);
+      await registerUsersSchema.validateAsync(request.body);
       const {
         name,
         surname,
         date_birth,
+        genre,
         country,
         city,
         email,
@@ -71,7 +81,7 @@ const usersController = {
         return response.status(409).json({
           status: 'error',
           code: 409,
-          error: `El email ${email} que has introducido ya esta registrado`
+          error: `El email ${email} ya esta registrado`
         });
       }
 
@@ -81,11 +91,11 @@ const usersController = {
       // code to activate account
       const regCode = helpers.randomString(20);
 
-      // name userfolder
-      const emailUuid = uuid.v4(email);
+      /* name userfolder
+      const emailUuid = uuid.v4(email);*/
 
       // path where it is save the userdata
-      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`, `${emailUuid}`);
+      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}` /*, `${emailUuid}`*/ );
 
       // we process image file that we receive into the body
       let savedFileName;
@@ -104,14 +114,30 @@ const usersController = {
         }
 
       } else {
-        savedFileName = image;
+        if (!request.files  || image === null || image === undefined) {
+          if (genre === 'Hombre') {
+            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
+          } else if (genre === 'Mujer') {
+            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_WOMEN}`);
+          } else {
+            savedFileName = path.join( `./uploads`, `${PROFILE_IMAGE_DEFAULT_OTHER}`);
+          }
+        } else {
+          savedFileName = image;
+
+        }
+        let imageprueba = path.join(`${PUBLIC_HOST}`, `../${PUBLIC_UPLOADS}`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
+        console.log('savedfile:', imageprueba);
+
       }
       // we generate the image link with the path to save into db and to show in front
-      let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`, `./${savedFileName}`);
+      let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${savedFileName}`);
       // let folderUserDataDB = path.join(`${__dirname}`, `./${USERS_VIEW_UPLOADS}`, `./${emailUuid}`);
+
+      // Postman
       let role;
 
-      if (name === 'Robert' && surname === 'Hernández' && email === 'airbusjayrobert@gmail.com' && date_birth === '1990-04-06') {
+      if (name === 'Robert' && surname === 'Hernández' && email === 'airbusjayrobert@gmail.com') {
         role = 'admin'
       } else {
         role = 'user'
@@ -119,15 +145,15 @@ const usersController = {
 
       // we save all data into db
       const [newUserData] = await connection.query(`
-        INSERT INTO users(name, surname, date_birth, country, city, email, role, password, last_password_update, image, user_folder, creation_date, ip, reg_Code)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [capitalizeName, capitalizeSurname, date_birth, country, city, email, role, passwordDB, dateNow, savedFileName, userImagePath, dateNow, request.ip, regCode]);
-
-      // encrypt id
-      // const idUuid = uuid.v4(newUserData.insertId);
+        INSERT INTO users(name, surname, date_birth, genre, country, city, email, role, password, last_password_update, image, creation_date, ip, reg_Code)
+        VALUES( ? , ? , ? , ?, ? , ? , ?, ?, ?, CURRENT_TIMESTAMP(), ? , CURRENT_TIMESTAMP(), ? , ? );
+        `,
+        [capitalizeName, capitalizeSurname, date_birth, genre, country, city, email, role, passwordDB, savedFileName, request.ip, regCode]);
 
       // we send an email with the activation link for user account 
-      const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`
+      const userValidationLink = `${PUBLIC_HOST}/users/${newUserData.insertId}/activate?code=${regCode}`;
+      const pathImageEmail = path.join(__dirname, `../${PUBLIC_UPLOADS}`, `${LOGO_PATH}`);
+
 
       if (!existingEmail.length.error) {
         try {
@@ -145,11 +171,17 @@ const usersController = {
             text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
             html: `
             <div>
+              <img src="cid:logo" alt="Logo Aventura Xperience">
               <h1> Activa tu cuenta en Aventura Xperience </h1>
               <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
               <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
               </p>
-            </div>`
+            </div>`,
+            attachments: [{
+              filename: 'logo.png',
+              path: pathImageEmail,
+              cid: 'logo' //same cid value as in the html img src
+            }]
           };
 
           transporter.sendMail(mailOptions, (error, info) => {
@@ -180,18 +212,15 @@ const usersController = {
           id: newUserData.insertId,
           name: capitalizeName,
           surname: capitalizeSurname,
-          date_birth,
-          country,
-          city,
-          email,
+          date_birth: date_birth,
+          genre: genre,
+          email: email,
           password: passwordDB,
-          last_password_update: dateNow,
-          image: image4Vue,
-          user_folder: userImagePath,
-          role,
+          image: savedFileName,
+          role: role,
           creation_date: creating_date,
           ip: request.ip,
-          regCode
+          regCode_: regCode
         },
         message: `La cuenta fue creada con éxito, verifica tu buzón de correo email para activar tu cuenta.`
       });
@@ -283,7 +312,7 @@ const usersController = {
     try {
       connection = await getConnection();
 
-      await usersSchema.validateAsync(request.body);
+      await validations.updateDataUsersSchema.validateAsync(request.body);
       const {
         name,
         surname,
@@ -299,17 +328,69 @@ const usersController = {
       } = request.params;
 
 
-      const passwordDB = await bcrypt.hash(password, 10);
+
       const [current] = await connection.query(`
-        SELECT image 
+        SELECT name, surname, date_birth, image ,email, country, city, password
         FROM users 
         WHERE id=?`,
         [id]);
 
-      // name userfolder
-      const emailUuid = uuid.v4(email);
+      let sameName;
+      let sameSurname;
+      let sameDate_birth;
+      let sameEmail;
+      let samePassword;
+      let sameCountry;
+      let sameCity;
+      let sameImage;
+      let savedFileName;
+      let passwordDB;
+
+
+      if (password === null || password === undefined) {
+        samePassword = current[0].password;
+
+      } else {
+
+        samePassword = passwordDB = await bcrypt.hash(password, 10);
+      }
+
+      if (name === null || name === undefined) {
+        sameName = current.name;
+      } else {
+        sameName = name;
+
+      }
+
+      if (surname === null || surname === undefined) {
+        sameSurname = current[0].surname;
+      } else {
+        sameSurname = surname;
+
+      }
+      if (date_birth === null || date_birth === undefined) {
+        sameDate_birth = current[0].date_birth;
+      } else {
+        sameDate_birth = date_birth;
+      }
+      if (email === null || email === undefined) {
+        sameEmail = current[0].email;
+      } else {
+        sameEmail = email;
+      }
+      if (country === null || country === undefined) {
+        sameCountry = current[0].country;
+      } else {
+        sameCountry = country
+      }
+      if (city === null || city === undefined) {
+        sameCity = current[0].city;
+      } else {
+        sameCity = city;
+      }
+
       // path where it is save the userdata
-      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`, `${emailUuid}`);
+      const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`);
 
       if (!current.length) {
         return response.status(400).json({
@@ -319,14 +400,11 @@ const usersController = {
         });
 
       };
-      if (current[0].image) {
-        await helpers.deletePhoto(userImagePath, current[0].image);
-      };
 
-      let savedFileName;
 
       if (request.files && request.files.image) {
         try {
+          await helpers.deletePhoto(userImagePath, current[0].image);
           savedFileName = await helpers.processAndSavePhoto(userImagePath, request.files.image);
         } catch (error) {
           return response.status(400).json({
@@ -336,25 +414,25 @@ const usersController = {
           });
         }
       } else {
-        savedFileName = current.image;
+        savedFileName = current[0].image;
       }
       await connection.query(`
         UPDATE users 
-        SET name=?, surname=?, date_birth=?, country=?, city=?, email=?, password=?,last_password_update=? ,image=?, modify_date=?, ip=? 
+        SET name =? , surname =? , date_birth =? , country =? , city =? , email =? , password =? , last_password_update =CURRENT_TIMESTAMP(), image =? , modify_date =CURRENT_TIMESTAMP(), ip =?
         WHERE id=?`,
-        [name, surname, date_birth, country, city, email, passwordDB, dateNow, savedFileName, dateNow, request.ip, id]);
+        [sameName, sameSurname, sameDate_birth, sameCountry, sameCity, sameEmail, samePassword, savedFileName, request.ip, id]);
 
       response.send({
         status: 200,
         data: {
           id,
-          name,
-          surname,
-          date_birth,
-          country,
-          city,
-          email,
-          passwordDB,
+          name: sameName,
+          surname: sameSurname,
+          date_birth: sameDate_birth,
+          country: sameCountry,
+          city: sameCity,
+          email: sameEmail,
+          password: samePassword,
           last_password_update: dateNow,
           image: savedFileName,
           modify_date: creating_date,
@@ -471,12 +549,7 @@ const usersController = {
         expiresIn: '30d'
       });*/
 
-      return response.status(200).json({
-        /*data: {
-          token
-        },*/
-        message: `La cuenta ha sido actidava con éxito, ya puedes iniciar sesión`,
-      });
+      return response.redirect('http://localhost:8080/#/activation-account');
 
     } catch (error) {
       next(error);
@@ -602,10 +675,11 @@ const usersController = {
 
       // we open connection to db
       connection = await getConnection();
+      const newPass = helpers.randomString(10);
 
       // we check if the email exist into db
       const [existingUser] = await connection.query(`
-        SELECT id 
+        SELECT id , name, surname
         FROM users 
         WHERE email=?`,
         [email]);
@@ -620,7 +694,7 @@ const usersController = {
       console.log(existingUser);
 
       // new password encrypted
-      const passwordDB = await bcrypt.hash(email, 10);
+      const passwordDB = await bcrypt.hash(newPass, 10);
 
       // we set reg_code into db
       const [result] = await connection.query(`
@@ -641,8 +715,6 @@ const usersController = {
 
       }
 
-      // we send an email with the activation link for user account 
-      const userDefaultPasswordLink = `${PUBLIC_HOST}/users/`;
 
       try {
         const transporter = nodemailer.createTransport({
@@ -656,12 +728,16 @@ const usersController = {
           from: ADMIN_EMAIL,
           to: `${email}`,
           subject: `Restablecer password cuenta Aventura Xperience`,
-          text: `Para restablecer la password pega esta URL en tu navegador : ${userDefaultPasswordLink}`,
+          text: `Nueva password de acceso`,
           html: `
             <div>
-              <h1>Restablecer password cuenta Aventura Xperience</h1>
-              <p>Para validar la cuenta pega esta URL en tu navegador: ${userDefaultPasswordLink} o pulsa click en el siguiente enlace:
-              <a href="${userDefaultPasswordLink}" target="_blank">Restablecer password dando click aquí!</a>
+              <h1>Nueva password cuenta Aventura Xperience</h1>
+              <p>Hola ${existingUser[0].name} ${existingUser[0].surname}!</p>
+              <p>Te hemos proporcionado una nueva password para que puedas acceder de nuevo a tu cuenta:</p>
+              <p>Usuario: ${email}</p>
+              <p>Password: ${newPass}</p>
+              <p> =====>
+              <a href="${LOGIN_HOST_VUE}" target="_blank">Haz login pulsando click aquí!</a> <=====
               </p>
             </div>`
         };
@@ -700,7 +776,7 @@ const usersController = {
       } = request.body;
       connection = await getConnection();
       const [userEmailDB] = await connection.query(`
-        SELECT id, name, surname, email, password, role, ip 
+        SELECT *
         FROM users 
         WHERE email=? 
         AND isActive=1`,
@@ -724,8 +800,17 @@ const usersController = {
       }
       const tokenPayload = {
         id: user.id,
+        name: user.name,
+        surname: user.surname,
+        country: user.country,
+        city: user.city,
         email: user.email,
-        role: user.role
+        role: user.role,
+        image: user.image,
+        creation_date: user.creation_date,
+        modify_date: user.modify_date,
+        last_password_update: user.last_password_update,
+        ip: user.ip
       };
       const token = jwt.sign({
         tokenPayload

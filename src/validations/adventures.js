@@ -4,6 +4,7 @@ const {
   helpers
 } = require('../helpers');
 
+
 const adventuresSchema = Joi.object({
   name: Joi.string()
     .min(3)
@@ -44,12 +45,12 @@ const adventuresSchema = Joi.object({
   vacancy: Joi.number()
     .min(0)
     .max(10)
-    .positive()
     .required()
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
   isAvailable: Joi.string()
     .max(20)
     .required()
+    .trim()
     .error(helpers.errorGenerator('Este campo no puede ir vacio, Por favor selecciona una opcion valida para este campo', 400)),
   image: Joi.any(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),

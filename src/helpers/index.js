@@ -96,8 +96,10 @@ const helpers = {
     }
   },
   capitalize: (word) => {
-    return word[0].toUpperCase() + word.slice(1);
-  }
+    return word[0].trim().toUpperCase() + word.slice(1);
+  },
+  increment: async (paramA, paramB) => await paramA * paramB,
+  decrement: async (paramA, paramB) => Number(paramA) - Number(paramB)
 
 }
 module.exports = {

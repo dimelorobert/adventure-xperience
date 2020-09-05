@@ -68,7 +68,7 @@ const categoriesController = {
         data: {
           id: result.insertId,
           name: capitalizeName,
-          savedFileName,
+          image: savedFileName,
           creation_date: creating_date
         },
         message: `La categoria con el id ${result.insertId} fue creada exitosamente`
@@ -216,7 +216,7 @@ const categoriesController = {
         data: {
           id,
           name,
-          savedFileName,
+          image: savedFileName,
           modify_date: creating_date,
         },
         message: `La categoria con el id ${id} fue modificada satisfactoriamente`

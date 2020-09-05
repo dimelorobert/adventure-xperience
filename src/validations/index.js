@@ -4,6 +4,12 @@ const {
   usersSchema
 } = require('./users');
 const {
+  registerUsersSchema,
+} = require('./registerUserSchema')
+const {
+  updateDataUsersSchema
+} = require('./updateDataUser')
+const {
   categoriesSchema
 } = require('./categories');
 const {
@@ -24,6 +30,8 @@ const {
 
 module.exports = {
   usersSchema,
+  registerUsersSchema,
+  updateDataUsersSchema,
   categoriesSchema,
   adventuresSchema,
   reviewsSchema,

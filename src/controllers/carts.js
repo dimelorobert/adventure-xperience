@@ -11,6 +11,9 @@ const {
 } = process.env;
 const path = require('path');
 const {
+	cartSchema
+} = require('../validations');
+const {
 	getConnection
 } = require('../database');
 const {
@@ -23,8 +26,8 @@ const cartsController = {
 	create: async (request, response, next) => {
 		try {
 			connection = await getConnection();
+			await cartSchema.validateAsync(request.body);
 			const {
-				total_price,
 				adventure_id,
 				status,
 				quantity,
@@ -44,7 +47,7 @@ const cartsController = {
             WHERE id=?`, [id]);
 
 			const [adventureSelected] = await connection.query(`
-            SELECT name, country, city , start_date_event, vacancy, isAvailable
+            SELECT name, country, city , start_date_event, vacancy, isAvailable, price
             FROM adventures 
             WHERE id=?`, [adventure_id]);
 
@@ -63,7 +66,8 @@ const cartsController = {
 				city,
 				start_date_event,
 				vacancy,
-				isAvailable
+				isAvailable,
+				price
 			} = destructuringNameCountryCity;
 
 			if (isAvailable === 'no disponible' || vacancy === 0) {
@@ -82,6 +86,16 @@ const cartsController = {
 					error: 'Oops...La cantidad de plazas seleccionadas excede el numero de plazas disponibles, verifica tu selección e intentalo de nuevo'
 				});
 			}
+			let totallyPrice = await (await helpers.increment(quantity, price)).toFixed(2);
+			
+			if (!totallyPrice) {
+				return response.status(401).json({
+					status: 'error',
+					code: 401,
+					error: 'Ha ocurrido un error al procesar su reserva o compra'
+				});
+			}
+			console.log(totallyPrice);
 
 			await connection.query(`
             UPDATE adventures
@@ -90,18 +104,21 @@ const cartsController = {
 
 			let booking;
 			let bookingPay;
+			let vacancyStock = await helpers.decrement(vacancy, quantity);
+
+
+
+
 			if (status === 'reservada') {
 
 				bookingPay = 'reserva';
 
 				[booking] = await connection.query(`
-               INSERT INTO cart(purchased_date, date_booking, total_price, status, user_id, adventure_id)
+               INSERT INTO cart(purchase_date, date_booking, total_price, status, user_id, adventure_id)
                VALUES(null, CURRENT_TIMESTAMP(), ?, 'reservada', ?, ? );`,
-					[total_price, id, adventure_id]);
+					[totallyPrice, id, adventure_id]);
 
 			} else if (status === 'pagada') {
-
-				let vacancyStock = vacancy - Number(quantity);
 
 				await connection.query(`
             UPDATE adventures
@@ -110,9 +127,9 @@ const cartsController = {
 
 				bookingPay = 'compra';
 				[booking] = await connection.query(`
-               INSERT INTO cart(quantity, purchased_date, date_booking, total_price, status, user_id, adventure_id)
+               INSERT INTO cart(quantity, purchase_date, date_booking, total_price, status, user_id, adventure_id)
                VALUES(?,CURRENT_TIMESTAMP(), null,  ?, 'pagada', ?, ? );`,
-					[quantity, total_price, id, adventure_id]);
+					[quantity, totallyPrice, id, adventure_id]);
 
 			} else {
 				return response.status(404).json({
@@ -146,7 +163,7 @@ const cartsController = {
 						text: `Este email es para confirmar tu ${bookingPay} realizada en la web aventura Xperience`,
 						html: `
             <div>
-               <img src="cid:logo" alt="Logo Aventura Xperience"> <h1><strong>Aventura</strong> Xperience</h1>
+               <img src="cid:logo" alt="Logo Aventura Xperience">
               	<h2> Ticket de ${bookingPay} Nº.ticket: ${booking.insertId} </h2>
              	<p> Hola ${user[0].name} ${user[0].surname}:</p>
               <p> Has efectuado la ${bookingPay} de ${quantity} plaza(s) en la siguiente aventura: </p>
@@ -156,11 +173,11 @@ const cartsController = {
               <br> 
               <spa> Id usuario: ${id}</spa>
               <br>
-				  <spa> nombre: ${name}</spa>
+				  <spa> Actividad: ${name}</spa>
 				  <br>
               <spa> Plazas compradas: ${quantity}</spa>
               <br>
-              <spa> Precio: ${total_price}</spa>
+              <spa> Precio total: ${totallyPrice}</spa>
               <br>
               <spa> País - Ciudad: ${country} - ${city}</spa>
               <br>
@@ -202,7 +219,7 @@ const cartsController = {
 					adventure_id,
 					adventure: name,
 					city_country: `${city} - ${country}`,
-					price: total_price,
+					price: totallyPrice,
 					status
 				},
 				message: `La aventura ${name} en ${city} - ${country} fue ${status} con éxito`
@@ -216,7 +233,51 @@ const cartsController = {
 			}
 		}
 
-	}
+	},
+	list: async (request, response, next) => {
+		try {
+
+		} catch (error) {
+			next(error);
+		} finally {
+			if (connection) {
+				connection.release();
+			}
+		}
+	},
+	get: async (request, response, next) => {
+		try {
+
+		} catch (error) {
+			next(error);
+		} finally {
+			if (connection) {
+				connection.release();
+			}
+		}
+	},
+	update: async (request, response, next) => {
+		try {
+
+		} catch (error) {
+			next(error);
+		} finally {
+			if (connection) {
+				connection.release();
+			}
+		}
+	},
+	delete: async (request, response, next) => {
+		try {
+
+		} catch (error) {
+			next(error);
+		} finally {
+			if (connection) {
+				connection.release();
+			}
+		}
+	},
 }
 module.exports = {
 	cartsController
