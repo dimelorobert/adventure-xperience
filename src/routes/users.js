@@ -20,7 +20,7 @@ router.delete('/delete/:id', /*userIsAuthenticated, userIsAdmin, */ usersControl
 
 // Login
 router.get('/:id/activate', usersController.activate); //admin
-router.get('/:id/send-new-code', usersController.sendCode); // Anonimo
+router.post('/send-new-code', usersController.sendCode); // Anonimo
 router.post('/recovery/password', /*authentication.user, authentication.admin,*/ usersController.recoveryPassword); // user y admin
 router.post('/login', usersController.login); // Anonimo
 router.get('/:id/deactivate', usersController.deactivate); //admin

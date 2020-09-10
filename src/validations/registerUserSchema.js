@@ -52,7 +52,12 @@ const registerUsersSchema = Joi.object().keys({
         400
       )
     ),
-  acept_terms: Joi.any(),
+  acept_terms: Joi.boolean().required().error(
+    helpers.errorGenerator(
+      'Para poder registrarte , tienes que aceptar los terminos',
+      400
+    )
+  ),
 
   image: Joi.any(),
 

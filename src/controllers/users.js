@@ -81,7 +81,7 @@ const usersController = {
         return response.status(409).json({
           status: 'error',
           code: 409,
-          error: `El email ${email} ya esta registrado`
+          message: `El email ${email} ya esta registrado`
         });
       }
 
@@ -113,7 +113,7 @@ const usersController = {
           return response.status(400).json({
             status: 'error',
             code: 400,
-            error: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
+            message: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
           });
         }
 
@@ -130,9 +130,15 @@ const usersController = {
           savedFileName = image;
 
         }
-        let pathImage = path.join(`/uploads/users/`, `${savedFileName}`);
-        console.log('savedfile:', pathImage);
+      }
 
+      if (genre === null || genre === undefined || Error === `Data truncated for column
+        genre ' at row 1' `) {
+        return response.status(400).json({
+          status: 'error',
+          code: 500,
+          message: 'El campo genero es obligatorio'
+        });
       }
       // we generate the image link with the path to save into db and to show in front
       let image4Vue = path.join(`${PUBLIC_HOST}`, `./${USERS_VIEW_UPLOADS}`, `./${savedFileName}`);
@@ -184,7 +190,7 @@ const usersController = {
             attachments: [{
               filename: 'logo.png',
               path: pathImageEmail,
-              cid: 'logo' //same cid value as in the html img src
+              cid: 'logo' // cid value as in the html img src
             }]
           };
 
@@ -205,7 +211,7 @@ const usersController = {
         return response.status(500).json({
           status: 'error',
           code: 500,
-          error: `No se pudo enviar el email debido a un error en el servidor`
+          message: `No se pudo enviar el email debido a un error en el servidor`
         });
       }
 
@@ -226,7 +232,7 @@ const usersController = {
           ip: request.ip,
           regCode_: regCode
         },
-        message: `La cuenta fue creada con éxito, verifica tu buzón de correo email para activar tu cuenta.`
+        message: `Verifica tu buzón de correo email para activar tu cuenta.`
       });
     } catch (error) {
       next(error);
@@ -251,7 +257,7 @@ const usersController = {
         return response.status(404).json({
           status: 'error',
           code: 400,
-          error: `No existen usuarios aún`
+          message: `No existen usuarios aún`
         });
       }
       response.send({
@@ -291,7 +297,7 @@ const usersController = {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `El usuario con el id ${id} no existe,por favor intentalo de nuevo`
+          message: `El usuario con el id ${id} no existe,por favor intentalo de nuevo`
         });
       }
       const [userResult] = result;
@@ -317,14 +323,12 @@ const usersController = {
       connection = await getConnection();
 
       await validations.updateDataUsersSchema.validateAsync(request.body);
-      const {
+      let {
         name,
         surname,
-        date_birth,
         country,
         city,
-        email,
-        password,
+        genre,
         image
       } = request.body;
       const {
@@ -334,109 +338,81 @@ const usersController = {
 
 
       const [current] = await connection.query(`
-        SELECT name, surname, date_birth, image ,email, country, city, password
+        SELECT name, surname, date_birth, image ,email, country, city, password, role
         FROM users 
         WHERE id=?`,
         [id]);
 
-      let sameName;
-      let sameSurname;
-      let sameDate_birth;
-      let sameEmail;
-      let samePassword;
-      let sameCountry;
-      let sameCity;
-      let sameImage;
-      let savedFileName;
-      let passwordDB;
-
-
-      if (password === null || password === undefined) {
-        samePassword = current[0].password;
-
-      } else {
-
-        samePassword = passwordDB = await bcrypt.hash(password, 10);
-      }
-
-      if (name === null || name === undefined) {
-        sameName = current.name;
-      } else {
-        sameName = name;
-
-      }
-
-      if (surname === null || surname === undefined) {
-        sameSurname = current[0].surname;
-      } else {
-        sameSurname = surname;
-
-      }
-      if (date_birth === null || date_birth === undefined) {
-        sameDate_birth = current[0].date_birth;
-      } else {
-        sameDate_birth = date_birth;
-      }
-      if (email === null || email === undefined) {
-        sameEmail = current[0].email;
-      } else {
-        sameEmail = email;
-      }
-      if (country === null || country === undefined) {
-        sameCountry = current[0].country;
-      } else {
-        sameCountry = country
-      }
-      if (city === null || city === undefined) {
-        sameCity = current[0].city;
-      } else {
-        sameCity = city;
-      }
-
       // path where it is save the userdata
       const userImagePath = path.join(__dirname, `../${USERS_UPLOADS_DIR}`);
+      console.log(userImagePath, current[0].image);
 
       if (!current.length) {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `El usuario con el id ${id} no existe`
+          message: `El usuario con el id ${id} no existe`
         });
 
       };
 
-
+      // we process image file that we receive into the body
+      let savedFileName;
       if (request.files && request.files.image) {
+
         try {
-          await helpers.deletePhoto(userImagePath, current[0].image);
-          savedFileName = await helpers.processAndSavePhoto(userImagePath, request.files.image);
+          let uploadImageBody = request.files.image;
+          // we define location path and image size values
+          let savedFileNameProcess = await helpers.processAndSavePhoto(userImagePath, uploadImageBody, 300, 300);
+
+          savedFileName = path.join(`./uploads/users/`, savedFileNameProcess);
+
+          console.log(savedFileName);
         } catch (error) {
           return response.status(400).json({
             status: 'error',
             code: 400,
-            error: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
+            message: 'La imagen no ha sido procesada correctamente ,por favor intentalo de nuevo'
           });
         }
+
       } else {
-        savedFileName = current[0].image;
+        if (!request.files || image === null || image === undefined) {
+          if (genre === 'Hombre') {
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_MEN}`);
+          } else if (genre === 'Mujer') {
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_WOMEN}`);
+          } else {
+            savedFileName = path.join(`./uploads`, `${PROFILE_IMAGE_DEFAULT_OTHER}`);
+          }
+        } else {
+          savedFileName = image;
+
+        }
       }
+
+      /// GENRE
+      if (genre === null || genre === undefined) {
+        genre = 'Hombre';
+      }
+
+
       await connection.query(`
         UPDATE users 
-        SET name =? , surname =? , date_birth =? , country =? , city =? , email =? , password =? , last_password_update =CURRENT_TIMESTAMP(), image =? , modify_date =CURRENT_TIMESTAMP(), ip =?
+        SET name =? , surname =? , country =? , city =?, genre=?, last_password_update =CURRENT_TIMESTAMP(), image =? , modify_date =CURRENT_TIMESTAMP(), ip =?
         WHERE id=?`,
-        [sameName, sameSurname, sameDate_birth, sameCountry, sameCity, sameEmail, samePassword, savedFileName, request.ip, id]);
+        [name, surname, country, city, genre, savedFileName, request.ip, id]);
 
       response.send({
         status: 200,
         data: {
           id,
-          name: sameName,
-          surname: sameSurname,
-          date_birth: sameDate_birth,
-          country: sameCountry,
-          city: sameCity,
-          email: sameEmail,
-          password: samePassword,
+          name: name,
+          surname: surname,
+          country: country,
+          city: city,
+          genre: genre,
+          role: current[0].role,
           last_password_update: dateNow,
           image: savedFileName,
           modify_date: creating_date,
@@ -470,7 +446,7 @@ const usersController = {
       if (!result.length) {
         return response.status(404).json({
           status: 'error',
-          error: `El usuario con el id ${id} no existe`
+          message: `El usuario con el id ${id} no existe`
         });
       };
 
@@ -487,7 +463,7 @@ const usersController = {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `La foto del usuario con el id ${id} no se pudo procesar correctamente`
+          message: `La foto del usuario con el id ${id} no se pudo procesar correctamente`
         });
       }
 
@@ -527,11 +503,7 @@ const usersController = {
         [id, code]);
 
       if (result.affectedRows === 0) {
-        return response.status(400).json({
-          status: 'error',
-          code: 400,
-          error: `No se pudo activar tu cuenta, vuelve a solicitar un nuevo link para activar tu cuenta`
-        });
+        return response.redirect('http://localhost:8080/#/activation-error-account');
       }
 
       // if you need to use the token uncomment the following lines
@@ -567,100 +539,115 @@ const usersController = {
     try {
 
       const {
-        id
-      } = request.params;
+        email
+      } = request.body;
 
       // we open connection to db
       connection = await getConnection();
 
       // we verify if user account is active
       const [isActivate] = await connection.query(`
-        SELECT isActive, email
+        SELECT id, isActive, email 
         FROM users 
-        WHERE id=?`,
-        [id]);
+        WHERE email=?`,
+        [email]);
       console.log(isActivate);
 
-      const [destructuringIsActiveAndEmail] = isActivate;
+      if (isActivate === undefined || null) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          message: `La cuenta con el email ${email} no coincide con ninguna en nuestra base de datos`
+        });
+      }
 
+      const [destructuringIsActiveAndEmail] = isActivate;
+      if (!destructuringIsActiveAndEmail) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          message: `La cuenta con el email ${email} no coincide con ninguna en nuestra base de datos`
+        });
+      }
       const {
         isActive,
-        email
+        id
       } = destructuringIsActiveAndEmail;
-
-
-
       if (isActive === 1) {
 
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `La cuenta con el email ${email} ya esta activada`
+          message: `La cuenta con el email ${email} ya esta activada`
         });
 
-      } else {
-        // code to activate account
-        const newCode = helpers.randomString(20);
+      }
 
-        // we set reg_code into db
-        const [result] = await connection.query(`
+
+
+
+      // code to activate account
+      const newCode = helpers.randomString(20);
+
+      // we set reg_code into db
+      const [result] = await connection.query(`
         UPDATE users
         SET reg_code=?
         WHERE id=?`,
-          [newCode, id]);
-        console.log(result);
+        [newCode, id]);
+      console.log(result);
 
-        if (!result.affectedRows === 0) {
-          return response.status(400).json({
-            status: 'error',
-            code: 400,
-            error: `No se pudo generar un nuevo codigo de activación ,la cuenta ya esta activada o hubo un error en el servidor, ponte en contacto con el admin : airbusjayrobert@gmail.com`
-          });
+      if (!result.affectedRows === 0) {
+        return response.status(400).json({
+          status: 'error',
+          code: 400,
+          message: `No se pudo generar un nuevo codigo de activación ,la cuenta ya esta activada o hubo un error en el servidor, ponte en contacto con el admin : airbusjayrobert@gmail.com`
+        });
 
-        }
+      }
 
-        // we send an email with the activation link for user account 
-        const userValidationLink = `${PUBLIC_HOST}/users/${id}/activate?code=${newCode}`;
+      // we send an email with the activation link for user account 
+      const userValidationLink = `${PUBLIC_HOST}/users/${id}/activate?code=${newCode}`;
 
-        try {
-          const transporter = nodemailer.createTransport({
-            service: SERVICE_EMAIL,
-            auth: {
-              user: ADMIN_EMAIL,
-              pass: PASSWORD_ADMIN_EMAIL
-            }
-          });
-          const mailOptions = {
-            from: ADMIN_EMAIL,
-            to: `${email}`,
-            subject: `Activa tu cuenta en Aventura Xperience`,
-            text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
-            html: `
+      try {
+        const transporter = nodemailer.createTransport({
+          service: SERVICE_EMAIL,
+          auth: {
+            user: ADMIN_EMAIL,
+            pass: PASSWORD_ADMIN_EMAIL
+          }
+        });
+        const mailOptions = {
+          from: ADMIN_EMAIL,
+          to: `${email}`,
+          subject: `Nuevo codigo de activación cuenta Aventura Xperience`,
+          text: `Para validar la cuenta pega esta URL en tu navegador : ${userValidationLink}`,
+          html: `
             <div>
               <h1> Nuevo codigo de activación cuenta en Aventura Xperience </h1>
               <p> Para validar la cuenta pega esta URL en tu navegador: ${userValidationLink} o pulsa click en el siguiente enlace:
               <a href="${userValidationLink}" target="_blank">Activa tu cuenta dando click aquí!</a>
               </p>
             </div>`
-          };
+        };
 
-          transporter.sendMail(mailOptions, (error, info) => {
-            response.status(200).json(request.body);
+        transporter.sendMail(mailOptions, (error, info) => {
+          response.status(200).json(request.body);
 
-          });
+        });
 
-        } catch (error) {
-          console.log(error);
-          if (error) {
-            response.status(500).send(error.message);
-          }
+      } catch (error) {
+        console.log(error);
+        if (error) {
+          response.status(500).send(error.message);
         }
       }
+
 
       // if everything ok, we send all data to json format
       response.send({
         status: 200,
-        message: `Se ha enviado un nuevo codigo verifica tu buzón de correo email para activar tu cuenta.`
+        message: `Se ha enviado un nuevo codigo, verifica tu buzón de correo para activar tu cuenta.`
       });
     } catch (error) {
       next(error);
@@ -692,7 +679,7 @@ const usersController = {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `El email ${email} No esta asociado a ningun usuario, verificalo o crea una nueva cuenta`
+          message: `El email ${email} No esta asociado a ningun usuario, verificalo o crea una nueva cuenta`
         });
       }
       console.log(existingUser);
@@ -714,7 +701,7 @@ const usersController = {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `No se pudo generar una nueva password, ponte en contacto con el admin : airbusjayrobert@gmail.com`
+          message: `No se pudo generar una nueva password, ponte en contacto con el admin : airbusjayrobert@gmail.com`
         });
 
       }
@@ -790,7 +777,7 @@ const usersController = {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: `La cuenta con el email especificado no existe o no esta activado, activa tu cuenta`
+          message: `La cuenta con el email especificado no existe o no esta activado, activa tu cuenta`
         });
       }
       const [user] = userEmailDB;
@@ -799,7 +786,7 @@ const usersController = {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: `Contraseña incorrecta`
+          message: `Contraseña incorrecta`
         });
       }
       const tokenPayload = {
@@ -826,7 +813,7 @@ const usersController = {
           tokenPayload,
           token
         },
-        message: `Bienvenid@ ${user.name} ${user.surname} te has logeado con éxito`,
+        message: `Bienvenid@ ${user.name} ${user.surname} `,
       });
 
 
@@ -864,7 +851,7 @@ const usersController = {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: `No tienes permisos para cambiar la password de usuario`
+          message: `No tienes permisos para cambiar la password de usuario`
         });
       }
 
@@ -872,7 +859,7 @@ const usersController = {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: 'La nueva contraseña no coincide con su repetición'
+          message: 'La nueva contraseña no coincide con su repetición'
         });
       }
 
@@ -880,7 +867,7 @@ const usersController = {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: 'La contraseña nueva no puede ser la misma que la antigua'
+          message: 'La contraseña nueva no puede ser la misma que la antigua'
         });
 
       }
@@ -896,7 +883,7 @@ const usersController = {
         return response.status(404).json({
           status: 'error',
           code: 404,
-          error: `El usuario con id: ${id} no existe`
+          message: `El usuario con id: ${id} no existe`
         });
 
       }
@@ -911,7 +898,7 @@ const usersController = {
         return response.status(401).json({
           status: 'error',
           code: 401,
-          error: `Contraseña incorrecta`
+          message: `Contraseña incorrecta`
         });
       }
 
@@ -971,14 +958,14 @@ const usersController = {
           return response.status(400).json({
             status: 'error',
             code: 400,
-            error: `No se pudo desactivar el usuario`
+            message: `No se pudo desactivar el usuario`
           });
         }
       } else {
         return response.status(400).json({
           status: 'error',
           code: 400,
-          error: `No tienes permisos de administrador`
+          message: `No tienes permisos de administrador`
         });
       }
 

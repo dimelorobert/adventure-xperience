@@ -7,13 +7,32 @@ const {
 } = require('../helpers');
 
 const updateDataUsersSchema = Joi.object().keys({
-     name: Joi.any(),
-     surname: Joi.any(),
-     date_birth: Joi.any(),
+     name: Joi.string()
+          .min(3)
+          .max(30)
+          .required()
+          .error(
+               helpers.errorGenerator(
+                    'El campo nombre es obligatorio y no puede exceder mas de 30 caracteres',
+                    400
+               )
+          ),
+     surname: Joi.string()
+          .min(3)
+          .max(60)
+          .required()
+          .error(
+               helpers.errorGenerator(
+                    'El campo nombre es obligatorio y no puede exceder mas de 60 caracteres.',
+                    400
+               )
+          ),
+     
      country: Joi.any(),
+          
      city: Joi.any(),
-     email: Joi.any(),
-     password: Joi.any(),
+     genre: Joi.any(),
+
      image: Joi.any(),
 });
 

@@ -47,7 +47,7 @@ const adventuresController = {
             vacancy,
             isAvailable,
             start_date_event,
-            category_id
+            category_id,
          } = request.body;
 
          // We get the  id and role user via token request.headers
@@ -106,7 +106,8 @@ const adventuresController = {
                let uploadImageBody1 = request.files.image1;
                savedFileName1 = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody1);
                if (request.files && request.files.image1 === undefined) {
-                  savedFileName1 = null;}
+                  savedFileName1 = null;
+               }
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -141,7 +142,8 @@ const adventuresController = {
                let uploadImageBody3 = request.files.image3;
                savedFileName3 = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody3);
                if (request.files && request.files.image3 === undefined) {
-                  savedFileName3 = null;}
+                  savedFileName3 = null;
+               }
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -156,14 +158,14 @@ const adventuresController = {
          let activateAdventure = 1;
 
          const [newAdventureData] = await connection.query(`
-            INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, isActive, creation_date, start_date_event, category_id, user_id)
-            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            `, [capitalizeName, description, savedFileName, savedFileName1, savedFileName2, savedFileName3, price, country, city, vacancy, isAvailable, activateAdventure, dateNow, start_date_event, category_id, id]);
+            INSERT INTO adventures(name, description, image, image1, image2, image3, price, country, city, vacancy, isAvailable, creation_date, start_date_event, category_id, user_id)
+            VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [capitalizeName, description, savedFileName, savedFileName1, savedFileName2, savedFileName3, price, country, city, vacancy, isAvailable, /*activateAdventure,*/ dateNow, start_date_event, category_id, id]);
 
          const [averageAdventure] = await connection.query(`
             INSERT INTO reviews(id, points, comments, date_post, update_date_post, ip, user_id, adventure_id)
             VALUES(null, 0, NULL, CURRENT_TIMESTAMP(), NULL, NULL, NULL, ? );
-            `,[newAdventureData.insertId]);
+            `, [newAdventureData.insertId]);
 
 
 
@@ -289,7 +291,7 @@ const adventuresController = {
             sort
          } = request.query;
          let [result] = await connection.query(`
-            SELECT a.id, a.name, a.description, a.image, a.image1, a.image2, a.image3, a.price, a.country, a.city, a.vacancy, a.isAvailable, a.start_date_event,
+            SELECT a.id, a.name, a.description, a.image, a.image1, a.image2, a.image3, a.price, a.country, a.city, a.vacancy, a.isAvailable, a.start_date_event, a.category_id,
                AVG(r.points) as averageAdventure
             FROM adventures a LEFT OUTER JOIN reviews r ON a.id = r.adventure_id
             GROUP BY a.id ORDER BY a.creation_date DESC;`)
@@ -331,7 +333,7 @@ const adventuresController = {
             SELECT a.id, a.name, a.description, a.image, a.image1, a.image2, a.image3, a.price, a.country, a.city, a.vacancy, a.isAvailable, a.start_date_event,
                AVG(r.points) as averageAdventure
             FROM adventures a LEFT OUTER JOIN reviews r ON a.id = r.adventure_id
-            WHERE a.id=?;`,[id])
+            WHERE a.id=?;`, [id])
          console.log(result);
 
          if (!result.length) {
@@ -456,8 +458,9 @@ const adventuresController = {
             try {
                let uploadImageBody = request.files.image;
                savedFileName = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody);
-                if (request.files && request.files.image === undefined) {
-                  savedFileName = null;}
+               if (request.files && request.files.image === undefined) {
+                  savedFileName = null;
+               }
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -474,7 +477,8 @@ const adventuresController = {
                let uploadImageBody1 = request.files.image1;
                savedFileName1 = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody1);
                if (request.files && request.files.image1 === undefined) {
-                  savedFileName1 = null;}
+                  savedFileName1 = null;
+               }
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -510,7 +514,8 @@ const adventuresController = {
                let uploadImageBody3 = request.files.image3;
                savedFileName3 = await helpers.processAndSavePhoto(adventureImagePath, uploadImageBody3);
                if (request.files && request.files.image3 === undefined) {
-                  savedFileName3 = null;}
+                  savedFileName3 = null;
+               }
             } catch (error) {
                return response.status(400).json({
                   status: 'error',
@@ -535,8 +540,8 @@ const adventuresController = {
                description,
                image: savedFileName,
                image1: savedFileName1,
-               image2: savedFileName2, 
-               image3 : savedFileName3,
+               image2: savedFileName2,
+               image3: savedFileName3,
                price,
                country,
                city,

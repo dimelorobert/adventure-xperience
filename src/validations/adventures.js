@@ -1,5 +1,6 @@
 'use strict';
 const Joi = require('@hapi/joi').extend(require('@hapi/joi-date'));
+const JoiAge = Joi.extend(require('joi-age'));
 const {
   helpers
 } = require('../helpers');
@@ -31,9 +32,8 @@ const adventuresSchema = Joi.object({
   price: Joi.number()
     .positive()
     .precision(2)
-    .required()
-    .max(99999)
-    .error(helpers.errorGenerator(`Introduce un formato de precio valido ej: 99.99`, 400)),
+    .max(99999),
+
   country: Joi.string()
     .max(30)
     .required()
@@ -47,11 +47,7 @@ const adventuresSchema = Joi.object({
     .max(10)
     .required()
     .error(helpers.errorGenerator(`Introduce un formato de plazas disponibles valido `, 400)),
-  isAvailable: Joi.string()
-    .max(20)
-    .required()
-    .trim()
-    .error(helpers.errorGenerator('Este campo no puede ir vacio, Por favor selecciona una opcion valida para este campo', 400)),
+  isAvailable: Joi.string(),
   image: Joi.any(),
   creation_date: Joi.date().format('YYYY-MM-DD').utc(),
   modify_date: Joi.date().format('YYYY-MM-DD').utc(),

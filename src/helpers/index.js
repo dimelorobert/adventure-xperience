@@ -82,7 +82,7 @@ const helpers = {
     try {
       await fs.unlink(path.join(pathImage, fileImage));
     } catch (error) {
-      return error;
+      return console.log(error);
     }
   },
 
