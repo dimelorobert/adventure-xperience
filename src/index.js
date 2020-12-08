@@ -15,6 +15,8 @@ import morgan from 'morgan';
 
 import cors from 'cors';
 
+import './database';
+
 const app = express();
 
 /////////////////// MIDDLEWARES //////////////////////////
@@ -31,8 +33,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', router);
 
 app.use(fileUpload());
-
-import './database';
 
 // MIDDLEWARE ERROR CONTROLLERS
 // Catch the previous errors

@@ -8,9 +8,10 @@ import '../models';
 
 const structureDB = async () => {
   try {
-    // con force: true Dropea las tablas de la base de datos y con force: false las crea
+    // Force: true Drop tables
+    // Force = false create tables
     await connectionDB.sync({
-      force: false
+      force: true
     });
 
     console.log('La estructura de la base de datos fue creada con éxito');
@@ -21,5 +22,6 @@ const structureDB = async () => {
     );
   }
 };
+structureDB();
 
 export default structureDB;
