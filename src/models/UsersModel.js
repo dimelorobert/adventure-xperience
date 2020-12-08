@@ -8,7 +8,7 @@ import {Sequelize, DataTypes} from 'sequelize';
 } = require('sequelize');*/
 
 // Importamos la conexión a la base de datos
-import connectionDB from '../database/connectionDB.js';
+import connectionDB from '../database/sequelizeConnection.js';
 
 // importamos moduloque genera id alfanumerico aleatorios
 const shortid = require('shortid');

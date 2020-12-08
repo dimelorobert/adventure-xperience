@@ -13,7 +13,7 @@ const {
   LOGO_PATH
 } = process.env;
 
-import getConnection from '../../database/connectionDB';
+import getConnection from '../../database/sequelizeConnection';
 
 //import uCreateSchema from '../../validations/users';
 

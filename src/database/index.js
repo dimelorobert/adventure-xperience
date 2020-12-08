@@ -1,7 +1,13 @@
 'use strict';
 
-import connectionDB from './connectionDB';
-import testConnectionDB from './testConnectionDB';
-import estructureDB from './estructureDB';
+// If you want to use ORM Sequelize connection
+import connectionDB from './sequelizeConnection';
 
-export { connectionDB, testConnectionDB, estructureDB };
+import structureDB from './structureDB';
+
+import testSeq from './testSeq';
+
+// If you want to use a natural MYSQL connection without ORM 'Sequelize'
+// import connectionDB from './mysqlConnection';
+
+export { connectionDB, testSeq, structureDB };
