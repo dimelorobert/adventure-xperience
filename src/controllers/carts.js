@@ -15,7 +15,7 @@ const {
 } = require('../validations');
 const {
 	getConnection
-} = require('../database');
+} = require('../database/sequelize-connection');
 const {
 	helpers
 } = require('../helpers');

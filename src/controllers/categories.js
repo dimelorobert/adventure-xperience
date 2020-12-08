@@ -7,7 +7,7 @@ const {
 } = process.env;
 const {
   getConnection
-} = require('../database');
+} = require('../database/sequelize-connection');
 const {
   categoriesSchema
 } = require('../validations');

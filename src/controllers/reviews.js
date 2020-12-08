@@ -4,7 +4,7 @@
 
 const {
 	getConnection
-} = require('../database');
+} = require('../database/sequelize-connection');
 const {
 	reviewsSchema
 } = require('../validations');

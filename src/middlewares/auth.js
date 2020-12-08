@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const {
     getConnection
-} = require('../database');
+} = require('../database/sequelize-connection');
 
 
 async function userIsAuthenticated(request, response, next) {

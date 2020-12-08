@@ -37,24 +37,24 @@ const helpers = {
   randomString: (size = 20) => {
     return crypto.randomBytes(size).toString('hex').slice(0, size);
   },
-  processAndSavePhoto: async (pathImage, fileImage, imageWidth = 500, imageHeight = 300) => {
+  processAndSavePhoto: async (image) => {
     //Random generated name to save it
     const savedFileName = `${uuid.v1()}.jpg`;
 
     //Ensure path
-    await fsExtra.ensureDir(pathImage);
+    await fsExtra.ensureDir(image.path);
 
     //Process image
-    const finalImage = sharp(fileImage.data);
+    const finalImage = sharp(image.file.data);
 
     //Make sure image is not wider than 500px
     const imageInfo = await finalImage.metadata();
 
-    if (imageInfo.width > imageWidth && imageInfo.height > imageHeight) {
-      finalImage.resize(imageWidth, imageHeight);
+    if (imageInfo.width > image.width && imageInfo.height > image.height) {
+      finalImage.resize(image.width, image.height);
     }
     //Save image
-    await finalImage.toFile(path.join(pathImage, savedFileName));
+    await finalImage.toFile(path.join(image.path, savedFileName));
 
 
     return savedFileName;

@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "Final project Bootcamp Hackaboss 2020, Project type Weekendesk web MVC (Model View Controller).",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon ./src/server",
+    "build": "babel src --out-dir dist",
+    "babel-node": "babel-node ./src/index.js",
+    "dev": "nodemon --exec npm run babel-node",
+    "start": "node dist/index.js",
     "initdb": "node ./src/initDatabase.js"
   },
   "repository": {
@@ -25,27 +29,42 @@
     "@hapi/joi": "^17.1.1",
     "@hapi/joi-date": "^2.0.1",
     "bcrypt": "^5.0.0",
-    "body-parser": "1.19.0",
+    "consign": "^0.1.6",
+    "core-js": "^3.8.0",
     "cors": "^2.8.5",
-    "date-fns": "2.15.0",
+    "date-fns": "2.16.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-fileupload": "1.1.10",
+    "express-fileupload": "1.2.0",
     "express-promise-router": "^4.0.1",
     "fs-extra": "9.0.1",
     "joi-age": "^2.0.0",
-    "joi-phone-number": "^4.1.1",
+    "joi-phone-number": "^5.0.0",
+    "joi-plus": "^1.2.2",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
-    "mysql2": "^2.1.0",
-    "nodemailer": "^6.4.11",
-    "sharp": "0.25.4",
-    "sweetalert2": "^9.17.1",
-    "uuid": "8.3.0"
+    "mysql2": "^2.2.5",
+    "nodemailer": "^6.4.16",
+    "sanitize-html": "^2.2.0",
+    "sequelize": "^6.3.5",
+    "sharp": "0.26.3",
+    "shortid": "^2.2.16",
+    "socket.io": "^3.0.3",
+    "uuid": "8.3.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4",
-    "prettier": "2.0.5",
-    "eslint": "7.6.0"
+    "@babel/cli": "^7.12.8",
+    "@babel/core": "^7.12.9",
+    "@babel/node": "^7.12.6",
+    "@babel/preset-env": "^7.12.7",
+    "eslint": "^7.14.0",
+    "eslint-plugin-vue": "^7.1.0",
+    "nodemon": "^2.0.6",
+    "prettier": "^2.2.1",
+    "typescript": "^4.1.2"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "singleQuote": true
   }
 }
