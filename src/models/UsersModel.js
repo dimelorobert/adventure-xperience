@@ -1,17 +1,17 @@
 'use strict';
 
 // Desestructuramos Datatypes del modulo de SEQUELIZE para poder formar la tabla en la base de datos
-import {Sequelize, DataTypes} from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
 /*const {
     Sequelize,
     DataTypes
 } = require('sequelize');*/
 
 // Importamos la conexión a la base de datos
-import connectionDB from '../database/sequelizeConnection.js';
+import connectionDB from '../database/sequelizeConnection';
 
 // importamos moduloque genera id alfanumerico aleatorios
-const shortid = require('shortid');
+import shortid from 'shortid';
 
 // Definimos la estructura de la tabla de la base de datos
 const UsersModel = connectionDB.define('users', {
@@ -20,83 +20,116 @@ const UsersModel = connectionDB.define('users', {
         defaultValue: shortid.generate,
         primaryKey: true,
         allowNull: false,
-    },
-    image: {
-        type: DataTypes.STRING,
-        allowNull: true
+        unique: true,
     },
     name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
     },
     surname: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false,
+    },
+    date_birth: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'avatar-0.jpg',
     },
     genre: {
         type: DataTypes.ENUM('Masculino', 'Femenino', 'Otro'),
         allowNull: true,
-        defaultValue: 'Otro'
-
+        defaultValue: 'Otro',
     },
-    company: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-
     address: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
+        defaultValue: 'Sin especificar',
+    },
+    country: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'Sin especificar',
+    },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'Sin especificar',
+    },
+    telephone: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+    },
+    nickname: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false,
+        unique: true,
     },
-    phone: {
+    password: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false,
     },
-    mobile: {
+    acept_terms: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    is_admin: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+    },
+    is_subscribed: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+    },
+    activation_code_account: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true,
+    },
+    account_is_active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+    },
+    ip: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     website: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
     },
     facebook: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
     },
     instagram: {
         type: DataTypes.STRING,
-        allowNull: true
-    },
-    twitter: {
-        type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
     },
     youtube: {
         type: DataTypes.STRING,
-        allowNull: true
-    },
-    linkedin: {
-        type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
     },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('NOW()'),
-        allowNull: true
+        allowNull: true,
     },
     updated_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.literal('NOW()'),
-        allowNull: true
+        allowNull: true,
     },
 });
 
-
-
-
-module.exports = UsersModel;
+export default UsersModel;

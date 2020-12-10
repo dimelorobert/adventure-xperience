@@ -18,7 +18,7 @@ const connectionDB = new Sequelize(
     dialect: 'mysql',
     port: MYSQL_PORT,
     define: {
-      timestamps: false
+      timestamps: true
     },
     pool: {
       max: 5,

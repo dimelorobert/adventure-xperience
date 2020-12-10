@@ -61,7 +61,51 @@
     "typescript": "^4.1.2"
   },
   "prettier": {
-    "trailingComma": "none",
-    "singleQuote": true
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "jsxBracketSameLine": false,
+    "arrowParens": "avoid",
+    "proseWrap": "always"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "commonjs": true,
+      "node": true,
+      "es6": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+      "Atomics": "readonly",
+      "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "rules": {
+      "no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "next"
+        }
+      ]
+    }
+  },
+  "babel": {
+    "presets": [["@babel/preset-env", {
+       "corejs": 3.8,
+       "useBuiltIns": "usage", 
+       "debug": true,
+       "targets": "> 0.25%, not dead, not ie 11"
+    }]]
   }
 }
