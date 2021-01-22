@@ -11,7 +11,7 @@ const structureDB = async () => {
     // Force: true Drop tables
     // Force = false create tables
     await connectionDB.sync({
-      force: true
+      force: false
     });
 
     console.log('✅✅✅ Database structure was created succesfully ✅✅✅');
