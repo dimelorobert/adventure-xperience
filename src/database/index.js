@@ -1,13 +1,24 @@
-'use strict';
+"use strict";
 
-// If you want to use ORM Sequelize connection
-import connectionDB from './sequelizeConnection';
+import mysql from "mysql2/promise";
+import "dotenv/config";
 
-import structureDB from './structureDB';
+const { MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } = process.env;
 
-import testSeq from './testSeq';
+let pool;
 
-// If you want to use a natural MYSQL connection without ORM 'Sequelize'
-// import connectionDB from './mysqlConnection';
+async function getConnection() {
+  if (!pool) {
+    pool = mysql.createPool({
+      connectionLimit: 10,
+      host: MYSQL_HOST,
+      user: MYSQL_USER,
+      password: MYSQL_PASSWORD,
+      database: MYSQL_DATABASE,
+      timezone: "Z",
+    });
+  }
+  return await pool.getConnection();
+}
 
-export { connectionDB, testSeq, structureDB };
+export default getConnection;

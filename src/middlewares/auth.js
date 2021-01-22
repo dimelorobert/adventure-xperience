@@ -92,7 +92,7 @@ async function userIsAuthenticated(request, response, next) {
                 status: 'error',
                 code: 401,
                 error: `Token invalido , obtén otro iniciando sesión`
-            });;
+            });
         }
 
         request.authorization = decoded;

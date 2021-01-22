@@ -2,7 +2,7 @@
 
 import routerx from 'express-promise-router';
 
-import usersRouter from './users';
+import usersRouter from '../components/users/routes';
 
 const router = routerx();
 

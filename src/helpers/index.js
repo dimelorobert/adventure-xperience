@@ -1,19 +1,13 @@
-'use strict';
+"use strict";
 
-require('dotenv').config();
+require("dotenv").config();
 
-const path = require('path');
-const sharp = require('sharp');
-const {
-  format
-} = require('date-fns');
-const {
-  es
-} = require('date-fns/locale');
-const crypto = require('crypto');
-const fsExtra = require('fs-extra');
-const fs = require('fs').promises;
-const uuid = require('uuid');
+import path from "path";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import crypto from "crypto";
+
+const fs = require("fs").promises;
 
 const helpers = {
   formatDateToDB: (date) => {
@@ -24,7 +18,7 @@ const helpers = {
   },
   formatDate4Vue: (date) => {
     return format(date, `dd 'de' MMM 'de' yyyy`, {
-      locale: es
+      locale: es,
     });
   },
 
@@ -35,35 +29,13 @@ const helpers = {
   },
 
   randomString: (size = 20) => {
-    return crypto.randomBytes(size).toString('hex').slice(0, size);
-  },
-  processAndSavePhoto: async (image) => {
-    //Random generated name to save it
-    const savedFileName = `${uuid.v1()}.jpg`;
-
-    //Ensure path
-    await fsExtra.ensureDir(image.path);
-
-    //Process image
-    const finalImage = sharp(image.file.data);
-
-    //Make sure image is not wider than 500px
-    const imageInfo = await finalImage.metadata();
-
-    if (imageInfo.width > image.width && imageInfo.height > image.height) {
-      finalImage.resize(image.width, image.height);
-    }
-    //Save image
-    await finalImage.toFile(path.join(image.path, savedFileName));
-
-
-    return savedFileName;
+    return crypto.randomBytes(size).toString("hex").slice(0, size);
   },
 
   createFolder: async (pathFolderName) => {
     try {
       await fs.mkdirSync(process.cwd() + `${pathFolderName}`, {
-        recursive: true
+        recursive: true,
       });
       console.log(`Directorio creado con exito`);
     } catch (error) {
@@ -89,8 +61,8 @@ const helpers = {
   deleteFolder: async (pathFolder) => {
     try {
       await fs.rmdir(`${pathFolder}`, {
-        recursive: true
-      })
+        recursive: true,
+      });
     } catch (error) {
       return error;
     }
@@ -98,10 +70,7 @@ const helpers = {
   capitalize: (word) => {
     return word[0].trim().toUpperCase() + word.slice(1);
   },
-  increment: async (paramA, paramB) => await paramA * paramB,
-  decrement: async (paramA, paramB) => Number(paramA) - Number(paramB)
-
-}
-module.exports = {
-  helpers
+  increment: async (paramA, paramB) => (await paramA) * paramB,
+  decrement: async (paramA, paramB) => Number(paramA) - Number(paramB),
 };
+export default helpers;

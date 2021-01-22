@@ -14,7 +14,7 @@ const structureDB = async () => {
       force: true
     });
 
-    console.log('La estructura de la base de datos fue creada con éxito');
+    console.log('✅✅✅ Database structure was created succesfully ✅✅✅');
   } catch (error) {
     console.log(
       'Ha ocurrido un error al crear la estructura de la base de datos :::',
