@@ -6,7 +6,8 @@ import deleteUser from "./deleteUser";
 import activateUser from "./activateUser";
 import deactivateUser from "./deactivateUser";
 import sendNewActivationCode from "./newActivationCode";
-import recoverPassword from './recoverPassword'
+import recoverPassword from "./recoverPassword";
+import uploadUserImage from "./uploadUserImage";
 
 export {
   createUser,
@@ -17,5 +18,6 @@ export {
   activateUser,
   deactivateUser,
   sendNewActivationCode,
-  recoverPassword
+  recoverPassword,
+  uploadUserImage,
 };

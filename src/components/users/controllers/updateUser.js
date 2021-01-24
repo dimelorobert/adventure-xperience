@@ -1,5 +1,6 @@
 import getConnection from "../../../database";
 import { updateSchema } from "../validations";
+import "dotenv/config";
 
 // we open connection to db
 let connectionDB;
@@ -24,12 +25,12 @@ async function updateUser(request, response, next) {
     // we create an user object to save into db
     const user = {
       id: id,
-      name: name.toLowerCase().trim(),
-      surname: surname.toLowerCase().trim(),
-      address: address.toLowerCase().trim(),
+      name: name,
+      surname: surname,
+      address: address,
       telephone: telephone,
-      city: city.toLowerCase().trim(),
-      country: country.toLowerCase().trim(),
+      city: city,
+      country: country,
       update_at: new Date(),
     };
 

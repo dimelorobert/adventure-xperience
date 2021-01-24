@@ -23,6 +23,8 @@ app
   .use(morgan("dev"))
 
   .use(cors())
+  
+  .use(fileUpload())
 
   .use(express.json())
 
@@ -32,7 +34,7 @@ app
 
   .use("/", router)
 
-  .use(fileUpload())
+  
 
   // MIDDLEWARE ERRORHANDLERS
   // Catch the previous errors

@@ -1,4 +1,3 @@
-"use strict";
 import routerx from "express-promise-router";
 import {
   createUser,
@@ -10,6 +9,7 @@ import {
   deactivateUser,
   sendNewActivationCode,
   recoverPassword,
+  uploadUserImage,
 } from "./controllers";
 
 const router = routerx();
@@ -23,5 +23,6 @@ router.get("/:id/activate", activateUser);
 router.get("/:id/deactivate/", deactivateUser);
 router.get("/send-code", sendNewActivationCode);
 router.post("/recovery-password", recoverPassword);
+router.put("/avatar/:id", uploadUserImage);
 
 export default router;

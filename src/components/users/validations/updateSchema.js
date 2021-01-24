@@ -2,6 +2,7 @@ import Joi from "joi";
 import helpers from "../../../helpers";
 
 const updateSchema = Joi.object().keys({
+  image: Joi.any(),
   name: Joi.string()
     .min(3)
     .max(30)

@@ -1,3 +1,4 @@
 import sendEmail from "./sendEmails";
+import processFiles from "./processFiles";
 
-export default sendEmail;
+export { sendEmail, processFiles };
