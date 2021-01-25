@@ -1,5 +1,5 @@
 import getConnection from "../../../database";
-import sendEmail from "../../../services";
+import { sendEmail } from "../../../services";
 
 // we open connection to db
 let connectionDB;
@@ -57,7 +57,11 @@ async function activateUser(request, response, next) {
       ],
     };
 
-    await sendEmail(mailOptions);
+    try {
+      await sendEmail(mailOptions);
+    } catch (error) {
+      console.log("Error al enviar el email", error);
+    }
 
     response.status(200).send({ message: "Cuenta activada" });
   } catch (error) {

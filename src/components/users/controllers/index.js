@@ -8,6 +8,7 @@ import deactivateUser from "./deactivateUser";
 import sendNewActivationCode from "./newActivationCode";
 import recoverPassword from "./recoverPassword";
 import uploadUserImage from "./uploadUserImage";
+import loginUser from "./loginUser";
 
 export {
   createUser,
@@ -20,4 +21,5 @@ export {
   sendNewActivationCode,
   recoverPassword,
   uploadUserImage,
+  loginUser,
 };

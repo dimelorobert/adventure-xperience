@@ -14,12 +14,15 @@ async function uploadImage(request, response, next) {
 
     const { id } = request.params;
     const { image } = request.files;
+
+    // we create a path to host the user files
     const userImagePath = path.join(
       __dirname,
       `../../../${UPLOADS_DIR}`,
       `./users/${id}/images/`
     );
 
+    // we check if exists an image to delete for save another
     const [
       imageExist,
     ] = await connectionDB.query(`SELECT image FROM users WHERE id=?`, [id]);
@@ -28,7 +31,7 @@ async function uploadImage(request, response, next) {
       await helpers.deleteFolder(userImagePath);
     }
 
-    // process image (create folder path, size change ..)
+   
     let savedFileName;
 
     let uploadImageBody = {
@@ -37,7 +40,7 @@ async function uploadImage(request, response, next) {
       width: 300,
       height: 300,
     };
-    console.log("UPLOADE IMAGE:::", uploadImageBody);
+    
     savedFileName = path.join(
       `./uploads/users/`,
       `${id}`,
@@ -49,7 +52,7 @@ async function uploadImage(request, response, next) {
       id: id,
       image: savedFileName,
     };
-    console.log("IMAGE CHANGED:::", imageChanged);
+
     await connectionDB.query(`UPDATE users SET ?`, imageChanged);
 
     response

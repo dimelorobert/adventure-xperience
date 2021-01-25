@@ -1,6 +1,6 @@
 import getConnection from "../../../database";
 import helpers from "../../../helpers";
-import sendEmail from "../../../services";
+import { sendEmail } from "../../../services";
 
 const { ADMIN_EMAIL, PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;
 
@@ -23,7 +23,7 @@ async function sendNewActivationCode(request, response, next) {
       [email]
     );
 
-    if (!isActivate.length ) {
+    if (!isActivate.length) {
       return response.status(400).json({ message: `El usuario no existe` });
     }
 
@@ -68,7 +68,11 @@ async function sendNewActivationCode(request, response, next) {
               </p>
             </div>`,
     };
-    await sendEmail(mailOptions);
+    try {
+      await sendEmail(mailOptions);
+    } catch (error) {
+      console.log("Error al enviar el email", error);
+    }
 
     // if everything ok, we send all data to json format
     response.status(200).send({
