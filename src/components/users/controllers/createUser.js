@@ -3,7 +3,7 @@ import { createSchema } from "../validations";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import helpers from "../../../helpers";
-import sendEmail from "../../../services";
+import { sendEmail } from "../../../services";
 import path from "path";
 
 const { PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;

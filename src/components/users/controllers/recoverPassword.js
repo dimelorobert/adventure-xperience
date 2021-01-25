@@ -1,7 +1,7 @@
 import getConnection from "../../../database";
 import bcrypt from "bcrypt";
 import helpers from "../../../helpers";
-import sendEmail from "../../../services";
+import { sendEmail } from "../../../services";
 
 // we open connection to db
 let connectionDB;

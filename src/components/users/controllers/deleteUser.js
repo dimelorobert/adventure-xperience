@@ -1,5 +1,5 @@
 import getConnection from "../../../database";
-import sendEmail from "../../../services";
+import { sendEmail } from "../../../services";
 
 // we open connection to db
 let connectionDB;
