@@ -1,18 +1,12 @@
-import nodemailer from "nodemailer";
+import { createTransport } from "nodemailer";
 import "dotenv/config";
 
-const {
-  ADMIN_EMAIL,
-  PASSWORD_ADMIN_EMAIL,
-  SERVICE_EMAIL
-} = process.env;
-
-
+const { ADMIN_EMAIL, PASSWORD_ADMIN_EMAIL, SERVICE_EMAIL } = process.env;
 
 // we send an email with the activation link for user account
 async function sendEmail(mailOptions) {
   try {
-    const transporter = nodemailer.createTransport({
+    const transporter = createTransport({
       service: SERVICE_EMAIL,
       auth: {
         user: ADMIN_EMAIL,
@@ -31,10 +25,7 @@ async function sendEmail(mailOptions) {
       console.log("El email fue enviado");
     });
   } catch (error) {
-    console.log(error);
-    if (error) {
-      console.log("Hubo un error al enviar el email");
-    }
+    console.log("Hubo un error al enviar el email:", error);
   }
 }
 

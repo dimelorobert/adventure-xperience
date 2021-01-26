@@ -13,13 +13,9 @@ async function recoverPassword(request, response, next) {
     const { email } = request.body;
 
     // we check if the email exist into db
-    const [existingUser] = await connectionDB.query(
-      `
-        SELECT id , name, surname
-        FROM users 
-        WHERE email=?`,
-      [email]
-    );
+    const [
+      existingUser,
+    ] = await connectionDB.query(`SELECT id FROM users WHERE email=?`, [email]);
 
     if (!existingUser.length) {
       return response.status(400).send({
@@ -28,22 +24,20 @@ async function recoverPassword(request, response, next) {
     }
 
     const newPass = helpers.randomString(10);
-    // new password encrypted
-    const passwordDB = await bcrypt.hash(newPass, 10);
 
-    // we set reg_code into db
+    const newUserPassword = {
+      email: email,
+      password: await bcrypt.hash(newPass, 10),
+    };
+
     const [result] = await connectionDB.query(
-      `
-        UPDATE users 
-        SET password=?
-        WHERE email=?
-        `,
-      [passwordDB, email]
+      `UPDATE users SET ? `,
+      newUserPassword
     );
 
     if (!result.affectedRows === 0) {
       return response.status(400).send({
-        message: `Ha ocurrido un error al generar una nueva contraseña`,
+        message: `No se ha podido generar una nueva contraseña`,
       });
     }
 

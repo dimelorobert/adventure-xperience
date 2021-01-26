@@ -78,11 +78,11 @@ const helpers = {
       return error;
     }
   },
-  deletePhoto: async (pathImage, fileImage) => {
+  deleteFile: async (pathFile) => {
     try {
-      await fs.unlink(path.join(pathImage, fileImage));
+      await fs.unlink(pathFile);
     } catch (error) {
-      return console.log(error);
+      return error;
     }
   },
 

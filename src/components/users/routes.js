@@ -24,7 +24,7 @@ router.get("/:id/activate", activateUser);
 router.get("/:id/deactivate/", deactivateUser);
 router.post("/send-code", sendNewActivationCode);
 router.post("/recovery-password", recoverPassword);
-router.put("/avatar/:id", uploadUserImage);
+router.patch("/avatar/:id", uploadUserImage);
 router.post("/login", loginUser);
 
 export default router;

@@ -68,11 +68,8 @@ async function sendNewActivationCode(request, response, next) {
               </p>
             </div>`,
     };
-    try {
-      await sendEmail(mailOptions);
-    } catch (error) {
-      console.log("Error al enviar el email", error);
-    }
+
+    await sendEmail(mailOptions);
 
     // if everything ok, we send all data to json format
     response.status(200).send({

@@ -1,6 +1,5 @@
 import getConnection from "../../../database";
 import helpers from "../../../helpers";
-
 import path from "path";
 
 const { UPLOADS_DIR } = process.env;
@@ -22,25 +21,25 @@ async function uploadImage(request, response, next) {
       `./users/${id}/images/`
     );
 
-    // we check if exists an image to delete for save another
+    // we check if exists an image to delete it and save another
     const [
       imageExist,
     ] = await connectionDB.query(`SELECT image FROM users WHERE id=?`, [id]);
 
     if (imageExist !== null) {
-      await helpers.deleteFolder(userImagePath);
+      await helpers.deleteFile(
+        path.join(__dirname, `../../../public/${imageExist[0].image}`)
+      );
     }
 
-   
     let savedFileName;
-
     let uploadImageBody = {
       file: image,
       path: userImagePath,
       width: 300,
       height: 300,
     };
-    
+
     savedFileName = path.join(
       `./uploads/users/`,
       `${id}`,
@@ -59,7 +58,10 @@ async function uploadImage(request, response, next) {
       .status(200)
       .json({ message: "La imagen fue subida correctamente" });
   } catch (error) {
-    next(error);
+    response.status(401).send({
+      message: "Ha ocurrido un error al subir la imagen",
+      error,
+    });
   } finally {
     await connectionDB.release();
   }

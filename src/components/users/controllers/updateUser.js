@@ -1,6 +1,5 @@
 import getConnection from "../../../database";
 import { updateSchema } from "../validations";
-import "dotenv/config";
 
 // we open connection to db
 let connectionDB;
