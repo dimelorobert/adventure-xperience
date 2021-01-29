@@ -56,7 +56,6 @@ async function uploadImage(request, response, next) {
   } catch (error) {
     response.status(401).send({
       message: "Ha ocurrido un error al subir la imagen",
-      ...error,
     });
   } finally {
     await connectionDB.release();
