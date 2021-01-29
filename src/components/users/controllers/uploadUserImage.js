@@ -40,20 +40,15 @@ async function uploadImage(request, response, next) {
       width: 300,
       height: 300,
     };
-
+    let processedFile = await processFiles(uploadImageBody);
     savedFileName = path.join(
       `./uploads/users/`,
       `${id}`,
       `./images/`,
-      processFiles(uploadImageBody)
+      `./${processedFile}`
     );
 
-    const imageChanged = {
-      id: id,
-      image: savedFileName,
-    };
-
-    await connectionDB.query(`UPDATE users SET ?`, imageChanged);
+    await connectionDB.query(`UPDATE users SET image=? WHERE id=?`,[savedFileName, id]);
 
     response
       .status(200)
@@ -61,7 +56,7 @@ async function uploadImage(request, response, next) {
   } catch (error) {
     response.status(401).send({
       message: "Ha ocurrido un error al subir la imagen",
-      error,
+      ...error,
     });
   } finally {
     await connectionDB.release();
