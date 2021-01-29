@@ -1,5 +1,12 @@
-//import { userIsAuthenticated, userIsAdmin } from './auth';
 import { notFoundErrorHandler, previousErrorHandler } from "./errorHandlers";
+import {
+  onlyUsersAuthenticated,
+  onlyAdmins,
+} from "./authentication";
 
-
-export { previousErrorHandler, notFoundErrorHandler };
+export {
+  previousErrorHandler,
+  notFoundErrorHandler,
+  onlyUsersAuthenticated,
+  onlyAdmins,
+};

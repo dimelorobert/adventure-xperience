@@ -1,5 +1,4 @@
 import { createTransport } from "nodemailer";
-import "dotenv/config";
 
 const { ADMIN_EMAIL, PASSWORD_ADMIN_EMAIL, SERVICE_EMAIL } = process.env;
 
@@ -8,6 +7,7 @@ async function sendEmail(mailOptions) {
   try {
     const transporter = createTransport({
       service: SERVICE_EMAIL,
+      pool: true,
       auth: {
         user: ADMIN_EMAIL,
         pass: PASSWORD_ADMIN_EMAIL,

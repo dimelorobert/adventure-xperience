@@ -45,8 +45,9 @@ async function deleteUser(request, response, next) {
 
     response.status(200).send({ message: "Usuario eliminado" });
   } catch (error) {
-    response.status(404).send({ message: "No se pudo eliminar el usuario" });
-    next(error);
+    response
+      .status(404)
+      .send({ message: "No se pudo eliminar el usuario" });
   } finally {
     await connectionDB.release();
   }

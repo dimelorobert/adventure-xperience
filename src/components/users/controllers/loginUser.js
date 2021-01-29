@@ -1,7 +1,9 @@
 import getConnection from "../../../database";
 import { createSchema } from "../validations";
 import bcrypt from "bcrypt";
-import { generateToken } from "../../../services";
+import { sign } from "jsonwebtoken";
+
+const { SECRET_KEY, EXPIRATION_TOKEN } = process.env;
 
 // we open connection to db
 let connectionDB;
@@ -48,15 +50,16 @@ async function loginUser(request, response, next) {
         message: `Contraseña incorrecta`,
       });
     }
-    // we build the object token
     const tokenPayload = {
       id: userExistAndIsActive[0].id,
       email: email,
       password: userExistAndIsActive[0].password,
       is_admin: userExistAndIsActive[0].is_admin,
     };
-// finally we generate the token to send a json
-    const token = await generateToken(tokenPayload);
+
+    const token = sign(tokenPayload, SECRET_KEY, {
+      expiresIn: EXPIRATION_TOKEN,
+    });
 
     return response.status(200).json({
       data: {

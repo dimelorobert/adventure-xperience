@@ -20,6 +20,15 @@ async function createUser(request, response, next) {
     await createSchema.validateAsync(request.body);
     const { email, password } = request.body;
 
+    const [
+      emailExist,
+    ] = await connectionDB.query(`SELECT id FROM users WHERE email=?`, [email]);
+    if (emailExist) {
+      return response
+        .status(404)
+        .json({ message: "El email ya esta registrado" });
+    }
+
     // we create an user object to save into db
     const newUser = {
       id: uuidv4(),
@@ -38,6 +47,7 @@ async function createUser(request, response, next) {
       __dirname,
       "../../../public/uploads/logo/logo.png"
     );
+    console.log("IMAGE PATH EMAIL::::", imagePathEmail);
 
     // we create a html structure of our message
     const mailOptions = {
@@ -47,7 +57,7 @@ async function createUser(request, response, next) {
       text: `Confirma tu cuenta para poder acceder con tus datos`,
       html: `
             <div>
-              <img src="cid:logo" alt="logo"/>
+              Embedded image: <img src="no-reply@gmail.com"/>
               <h1>Nueva cuenta Aventura Xperience</h1>
               <p>Hola!</p>
               <p>Confirma tu cuenta dando click en el siguiente enlace:</p>            
@@ -59,7 +69,7 @@ async function createUser(request, response, next) {
         {
           filename: "logo.png",
           path: imagePathEmail,
-          cid: "logo",
+          cid: "no-reply@gmail.com",
         },
       ],
     };
@@ -71,7 +81,6 @@ async function createUser(request, response, next) {
       message: "El usuario se ha creado con éxito, revisa tu correo",
     });
   } catch (error) {
-    response.status(404).json({ message: "El email ya esta registrado" });
     next(error);
   } finally {
     await connectionDB.release();

@@ -1,4 +1,5 @@
 import getConnection from "../../../database";
+import { processFiles } from "../../../services";
 import helpers from "../../../helpers";
 import path from "path";
 
@@ -44,7 +45,7 @@ async function uploadImage(request, response, next) {
       `./uploads/users/`,
       `${id}`,
       `./images/`,
-      await helpers.processAndSavePhoto(uploadImageBody)
+      processFiles(uploadImageBody)
     );
 
     const imageChanged = {
