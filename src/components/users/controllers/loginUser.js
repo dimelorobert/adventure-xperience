@@ -8,7 +8,7 @@ const { SECRET_KEY, EXPIRATION_TOKEN } = process.env;
 // we open connection to db
 let connectionDB;
 
-async function loginUser(request, response, next) {
+export async function loginUser(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -75,4 +75,4 @@ async function loginUser(request, response, next) {
   }
 }
 
-export default loginUser;
+

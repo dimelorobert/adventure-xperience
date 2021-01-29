@@ -1,7 +1,7 @@
 import getConnection from "../../../database";
 let connectionDB;
 
-async function getUsers(request, response, next) {
+export async function getUsers(request, response, next) {
   connectionDB = await getConnection();
   try {
     // we build a SQL query to list all users
@@ -19,4 +19,4 @@ async function getUsers(request, response, next) {
     await connectionDB.release();
   }
 }
-export default getUsers;
+

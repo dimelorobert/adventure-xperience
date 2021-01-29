@@ -4,7 +4,7 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-async function activateUser(request, response, next) {
+export async function activateUser(request, response, next) {
   // we open connection to db and get user id and code activation
   connectionDB = await getConnection();
   try {
@@ -70,5 +70,3 @@ async function activateUser(request, response, next) {
     connectionDB.release();
   }
 }
-
-export default activateUser;

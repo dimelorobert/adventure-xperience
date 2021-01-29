@@ -6,7 +6,7 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-async function recoverPassword(request, response, next) {
+export async function recoverPassword(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -72,4 +72,4 @@ async function recoverPassword(request, response, next) {
   }
 }
 
-export default recoverPassword;
+

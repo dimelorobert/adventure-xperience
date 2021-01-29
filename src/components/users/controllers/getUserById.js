@@ -2,7 +2,7 @@ import getConnection from "../../../database";
 
 let connectionDB;
 
-async function getUserById(request, response, next) {
+export async function getUserById(request, response, next) {
   connectionDB = await getConnection();
   try {
     const { id } = request.params;
@@ -28,5 +28,3 @@ async function getUserById(request, response, next) {
     await connectionDB.release();
   }
 }
-
-export default getUserById;

@@ -1,4 +1,4 @@
-import createSchema from "./createSchema";
+import registerSchema from "./registerSchema";
 import updateSchema from "./updateSchema";
 
-export { createSchema, updateSchema };
+export { registerSchema, updateSchema };

@@ -11,7 +11,7 @@ const { PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;
 // we open connection to db
 let connectionDB;
 
-async function createUser(request, response, next) {
+export async function registerUser(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -86,4 +86,4 @@ async function createUser(request, response, next) {
     await connectionDB.release();
   }
 }
-export default createUser;
+

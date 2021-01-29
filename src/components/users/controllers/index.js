@@ -1,4 +1,4 @@
-import createUser from "./createUser";
+import registerUser from "./registerUser";
 import getUsers from "./getUsers";
 import getUserById from "./getUserById";
 import updateUser from "./updateUser";
@@ -11,7 +11,7 @@ import uploadUserImage from "./uploadUserImage";
 import loginUser from "./loginUser";
 
 export {
-  createUser,
+  registerUser,
   getUsers,
   getUserById,
   updateUser,

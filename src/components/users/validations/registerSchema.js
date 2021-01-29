@@ -2,7 +2,7 @@
 
 import Joi from "joi";
 
-const createSchema = Joi.object().keys({
+const registerSchema = Joi.object().keys({
   email: Joi.string()
     .email()
     .empty("")
@@ -29,4 +29,4 @@ const createSchema = Joi.object().keys({
     }),
 });
 
-export default createSchema;
+export default registerSchema;

@@ -4,7 +4,7 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-async function deleteUser(request, response, next) {
+export async function deleteUser(request, response, next) {
   connectionDB = await getConnection();
   try {
     const { id } = request.params;
@@ -45,11 +45,8 @@ async function deleteUser(request, response, next) {
 
     response.status(200).send({ message: "Usuario eliminado" });
   } catch (error) {
-    response
-      .status(404)
-      .send({ message: "No se pudo eliminar el usuario" });
+    response.status(404).send({ message: "No se pudo eliminar el usuario" });
   } finally {
     await connectionDB.release();
   }
 }
-export default deleteUser;

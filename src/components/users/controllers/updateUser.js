@@ -3,7 +3,7 @@ import { updateSchema } from "../validations";
 
 // we open connection to db
 let connectionDB;
-async function updateUser(request, response, next) {
+export async function updateUser(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -45,4 +45,4 @@ async function updateUser(request, response, next) {
   }
 }
 
-export default updateUser;
+

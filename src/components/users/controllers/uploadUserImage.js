@@ -7,7 +7,7 @@ const { UPLOADS_DIR } = process.env;
 
 // we open connection to db
 let connectionDB;
-async function uploadImage(request, response, next) {
+export async function uploadImage(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -48,7 +48,10 @@ async function uploadImage(request, response, next) {
       `./${processedFile}`
     );
 
-    await connectionDB.query(`UPDATE users SET image=? WHERE id=?`,[savedFileName, id]);
+    await connectionDB.query(`UPDATE users SET image=? WHERE id=?`, [
+      savedFileName,
+      id,
+    ]);
 
     response
       .status(200)
@@ -61,5 +64,3 @@ async function uploadImage(request, response, next) {
     await connectionDB.release();
   }
 }
-
-export default uploadImage;
