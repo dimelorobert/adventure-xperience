@@ -1,5 +1,6 @@
 import getConnection from "../../../database";
 import { processFiles } from "../../../services";
+import { uploadURLImageSchema } from "../validations";
 import helpers from "../../../helpers";
 import path from "path";
 
@@ -7,46 +8,51 @@ const { UPLOADS_DIR } = process.env;
 
 // we open connection to db
 let connectionDB;
-export async function uploadImage(request, response, next) {
+async function uploadImage(request, response, next) {
   try {
-    // we open connection to db
     connectionDB = await getConnection();
+    await uploadURLImageSchema.validateAsync(request.body);
 
+    const { image } = request.body;
     const { id } = request.params;
-    const { image } = request.files;
-
-    // we create a path to host the user files
-    const userImagePath = path.join(
-      __dirname,
-      `../../../${UPLOADS_DIR}`,
-      `./users/${id}/images/`
-    );
-
-    // we check if exists an image to delete it and save another
-    const [
-      imageExist,
-    ] = await connectionDB.query(`SELECT image FROM users WHERE id=?`, [id]);
-
-    if (imageExist !== null) {
-      await helpers.deleteFile(
-        path.join(__dirname, `../../../public/${imageExist[0].image}`)
-      );
-    }
 
     let savedFileName;
-    let uploadImageBody = {
-      file: image,
-      path: userImagePath,
-      width: 300,
-      height: 300,
-    };
-    let processedFile = await processFiles(uploadImageBody);
-    savedFileName = path.join(
-      `./uploads/users/`,
-      `${id}`,
-      `./images/`,
-      `./${processedFile}`
-    );
+
+    if (request.files && request.files.image) {
+      // we create a path to host the user files
+      const userImagePath = path.join(
+        __dirname,
+        `../../../${UPLOADS_DIR}`,
+        `./users/${id}/images/`
+      );
+
+      // we check if exists an image to delete it and save another
+      const [
+        imageExist,
+      ] = await connectionDB.query(`SELECT image FROM users WHERE id=?`, [id]);
+
+      if (imageExist !== null) {
+        await helpers.deleteFile(
+          path.join(__dirname, `../../../public/${imageExist[0].image}`)
+        );
+      }
+
+      let uploadImageBody = {
+        file: request.files.image,
+        path: userImagePath,
+        width: 300,
+        height: 300,
+      };
+      let processedFile = await processFiles(uploadImageBody);
+      savedFileName = path.join(
+        `./uploads/users/`,
+        `${id}`,
+        `./images/`,
+        `./${processedFile}`
+      );
+    } else {
+      savedFileName = image;
+    }
 
     await connectionDB.query(`UPDATE users SET image=? WHERE id=?`, [
       savedFileName,
@@ -64,3 +70,4 @@ export async function uploadImage(request, response, next) {
     await connectionDB.release();
   }
 }
+export default uploadImage;
