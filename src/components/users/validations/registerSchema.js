@@ -1,31 +1,23 @@
-"use strict";
-
 import Joi from "joi";
 
 const registerSchema = Joi.object().keys({
-  email: Joi.string()
-    .email()
-    .empty("")
-    .allow("")
-    .trim()
-    .options({
-      convert: false,
-    })
-    .messages({
-      "string.email": "Debes introducir un email valido",
-      "string.trim": "El email no debe contener espacios",
-    }),
-
+  email: Joi.string().email().required().messages({
+    "string.email": "Debes introducir un email valido",
+    "string.required": "El camppo email es obligatorio",
+    "string.trim": "El email no debe contener espacios",
+  }),
   password: Joi.string()
     .min(6)
     .max(16)
     .alphanum()
-    .pattern(new RegExp("^[a-zA-Z0-9]{3,30}$"))
+    .pattern(new RegExp("^[A-z0-9]{6,16}$"))
     .required()
-    .trim()
     .messages({
-      "string.empty": "El campo password no debe estar vacío",
-      "string.required": "El campo password no debe estar vacío",
+      "string.empty": "El campo contraseña no debe estar vacío",
+      "string.alphanum": "La contraseña solo permite caracteres alfanúmericos",
+      "string.required": "El campo contraseña es obligatorio",
+      "string.min": "La contraseña debe tener mínimo 6 cáracteres",
+      "string.max": "La contraseña debe tener máximo 16 cáracteres",
     }),
 });
 
