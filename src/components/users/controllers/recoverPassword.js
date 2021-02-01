@@ -6,7 +6,7 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-export async function recoverPassword(request, response, next) {
+async function recoverPassword(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
@@ -25,14 +25,11 @@ export async function recoverPassword(request, response, next) {
 
     const newPass = helpers.randomString(10);
 
-    const newUserPassword = {
-      email: email,
-      password: await bcrypt.hash(newPass, 10),
-    };
+    const newPasswordDB = await bcrypt.hash(newPass, 10);
 
     const [result] = await connectionDB.query(
-      `UPDATE users SET ? `,
-      newUserPassword
+      `UPDATE users SET password=?, password_update_at=? WHERE email=?`,
+      [newPasswordDB, new Date(), email ]
     );
 
     if (!result.affectedRows === 0) {
@@ -72,4 +69,4 @@ export async function recoverPassword(request, response, next) {
   }
 }
 
-
+export default recoverPassword;

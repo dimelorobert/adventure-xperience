@@ -4,13 +4,12 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-export async function activateUser(request, response, next) {
+async function activateUser(request, response, next) {
   // we open connection to db and get user id and code activation
   connectionDB = await getConnection();
   try {
     const { id } = request.params;
-    const { code } = request.query;
-
+    
     const [
       activationCode,
     ] = await connectionDB.query(
@@ -18,12 +17,9 @@ export async function activateUser(request, response, next) {
       [id]
     );
 
-    if (
-      activationCode[0].activation_code === null ||
-      activationCode[0].activation_code !== code
-    ) {
+    if (activationCode[0].activation_code === null) {
       return response.status(400).send({
-        message: "No se ha podido activar la cuenta o ya esta activada",
+        message: "El link de activación ya ha sido utilizado",
       });
     }
 
@@ -70,3 +66,4 @@ export async function activateUser(request, response, next) {
     connectionDB.release();
   }
 }
+export default activateUser;

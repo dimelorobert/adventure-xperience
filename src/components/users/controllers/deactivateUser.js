@@ -4,7 +4,7 @@ import { sendEmail } from "../../../services";
 // we open connection to db
 let connectionDB;
 
-export async function deactivateUser(request, response, next) {
+async function deactivateUser(request, response, next) {
   // we open connection to db and get user id and code activation
   connectionDB = await getConnection();
   try {
@@ -65,3 +65,4 @@ export async function deactivateUser(request, response, next) {
     connectionDB.release();
   }
 }
+export default deactivateUser;

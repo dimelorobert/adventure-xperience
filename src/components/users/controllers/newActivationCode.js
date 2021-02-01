@@ -7,7 +7,7 @@ const { ADMIN_EMAIL, PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;
 // we open connection to db
 let connectionDB;
 
-export async function sendNewActivationCode(request, response, next) {
+async function sendNewActivationCode(request, response, next) {
   try {
     const { email } = request.body;
 
@@ -81,5 +81,4 @@ export async function sendNewActivationCode(request, response, next) {
     connectionDB.release();
   }
 }
-
-
+export default sendNewActivationCode;

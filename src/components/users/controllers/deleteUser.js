@@ -3,8 +3,7 @@ import { sendEmail } from "../../../services";
 
 // we open connection to db
 let connectionDB;
-
-export async function deleteUser(request, response, next) {
+async function deleteUser(request, response, next) {
   connectionDB = await getConnection();
   try {
     const { id } = request.params;
@@ -50,3 +49,5 @@ export async function deleteUser(request, response, next) {
     await connectionDB.release();
   }
 }
+
+export default deleteUser;

@@ -1,5 +1,5 @@
 import getConnection from "../../../database";
-import { createSchema } from "../validations";
+import { registerSchema } from "../validations";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import helpers from "../../../helpers";
@@ -11,22 +11,24 @@ const { PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;
 // we open connection to db
 let connectionDB;
 
-export async function registerUser(request, response, next) {
+async function registerUser(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
 
     // we validate the data received from request body
-    await createSchema.validateAsync(request.body);
+    await registerSchema.validateAsync(request.body);
     const { email, password } = request.body;
 
     const [
       emailExist,
-    ] = await connectionDB.query(`SELECT id FROM users WHERE email=?`, [email]);
-    if (emailExist) {
+    ] = await connectionDB.query(`SELECT email FROM users WHERE email=?`, [email]);
+    if (emailExist.length) {
       return response
         .status(404)
-        .json({ message: "El email ya esta registrado" });
+        .json({
+          message: "El email ya esta registrado",
+      ...response.error });
     }
 
     // we create an user object to save into db
@@ -47,7 +49,6 @@ export async function registerUser(request, response, next) {
       __dirname,
       "../../../public/uploads/logo/logo.png"
     );
-    console.log("IMAGE PATH EMAIL::::", imagePathEmail);
 
     // we create a html structure of our message
     const mailOptions = {
@@ -86,4 +87,6 @@ export async function registerUser(request, response, next) {
     await connectionDB.release();
   }
 }
+
+export default registerUser;
 

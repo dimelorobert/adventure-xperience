@@ -1,5 +1,5 @@
 import getConnection from "../../../database";
-import { createSchema } from "../validations";
+import { registerSchema } from "../validations";
 import bcrypt from "bcrypt";
 import { sign } from "jsonwebtoken";
 
@@ -8,13 +8,13 @@ const { SECRET_KEY, EXPIRATION_TOKEN } = process.env;
 // we open connection to db
 let connectionDB;
 
-export async function loginUser(request, response, next) {
+async function loginUser(request, response, next) {
   try {
     // we open connection to db
     connectionDB = await getConnection();
 
     // we validate type data received from client
-    await createSchema.validateAsync(request.body);
+    await registerSchema.validateAsync(request.body);
     const { email, password } = request.body;
 
     const [userExistAndIsActive] = await connectionDB.query(
@@ -74,5 +74,4 @@ export async function loginUser(request, response, next) {
     connectionDB.release();
   }
 }
-
-
+export default loginUser;
