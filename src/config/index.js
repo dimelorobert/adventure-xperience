@@ -1,3 +1,3 @@
-import nodemailerConfig from "./nodemailer-config";
+import nodemailerAuthConfig from "./nodemailerAuthConfig";
 
-export { nodemailerConfig };
+export { nodemailerAuthConfig };

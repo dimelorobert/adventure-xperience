@@ -35,7 +35,7 @@ async function deleteUser(request, response, next) {
         {
           filename: "logo.png",
           path: "/src/public/uploads/logo/logo.png",
-          cid: "logo", // cid value as in the html img src
+          cid: "logo", 
         },
       ],
     };

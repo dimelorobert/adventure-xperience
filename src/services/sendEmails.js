@@ -1,31 +1,16 @@
 import { createTransport } from "nodemailer";
-
-const { ADMIN_EMAIL, PASSWORD_ADMIN_EMAIL, SERVICE_EMAIL } = process.env;
+import { nodemailerAuthConfig } from "../config";
+import { errorGenerator } from "../helpers";
 
 // we send an email with the activation link for user account
 async function sendEmail(mailOptions) {
   try {
-    const transporter = createTransport({
-      service: SERVICE_EMAIL,
-      pool: true,
-      auth: {
-        user: ADMIN_EMAIL,
-        pass: PASSWORD_ADMIN_EMAIL,
-      },
-    });
-    mailOptions = {
-      from: "no-reply@gmail.com",
-      to: `${mailOptions.to}`,
-      subject: mailOptions.subject,
-      text: mailOptions.text,
-      html: mailOptions.html,
-    };
+    const transporter = createTransport(nodemailerAuthConfig);
 
-    transporter.sendMail(mailOptions, () => {
-      console.log("El email fue enviado");
-    });
+    transporter.sendMail(mailOptions);
+
   } catch (error) {
-    console.log("Hubo un error al enviar el email:", error);
+    errorGenerator("Ha ocurrido un error al enviar  el email", 409);
   }
 }
 
