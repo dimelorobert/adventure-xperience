@@ -29,11 +29,10 @@ async function registerUser(request, response, next) {
       const { email, password } = request.body;
 
       // we check if email already exist
-      const [
-         emailExist,
-      ] = await connectionDB.query(`SELECT email FROM users WHERE email=?`, [
-         email,
-      ]);
+      const [emailExist] = await connectionDB.query(
+         `SELECT email FROM users WHERE email=?`,
+         [email]
+      );
       if (emailExist.length) {
          console.log('[ERROR] registerUser.js line:46');
          return response.status(404).json({
@@ -58,8 +57,7 @@ async function registerUser(request, response, next) {
 
       // build logo path
       const imagePathEmail = path.join(
-         __dirname,
-         `../../../${LOGO_IMAGE_PATH}`,
+         __dirname,`../../../${LOGO_IMAGE_PATH}`,
       );
 
       // build email to send
@@ -70,12 +68,11 @@ async function registerUser(request, response, next) {
          text: `Muchas gracias por registrarte.`,
          html: `
             <div>
-              <img src="cid:logo"/>              
-              <h1></h1>
-              <p>Hola aventurero!</p>
-				  <p>Para poder tener acceso a tu cuenta en Aventura Xperience, 
-				  necesitamos que confirmes este email con el siguiente email</p>            
-				  <a style="
+               <img src="cid:logo"/>              
+               <p>Hola aventurero!</p>
+               <p>Para poder tener acceso a tu cuenta en Aventura Xperience,
+               necesitamos que confirmes este email con el siguiente email</p>            
+				   <a style="
 					  padding: 0.5rem 1rem;
 					  color: white;
 					  background - color: #FF235B;
@@ -99,7 +96,9 @@ async function registerUser(request, response, next) {
       response.status(201).send({
          message: 'El usuario se ha creado con éxito, revisa tu correo',
       });
+
    } catch (error) {
+      
       // if db is not created throw this error
       if (error.code === 'ER_BAD_DB_ERROR') {
          console.log('[ERROR] registerUser.js line:117');
