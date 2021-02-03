@@ -71,14 +71,16 @@ async function registerUser(request, response, next) {
                <img src="cid:logo"/>              
                <p>Hola aventurero!</p>
                <p>Para poder tener acceso a tu cuenta en Aventura Xperience,
-               necesitamos que confirmes este email con el siguiente email</p>            
+               necesitas confirmar este email con el siguiente enlace</p>            
 				   <a style="
 					  padding: 0.5rem 1rem;
 					  color: white;
-					  background - color: #FF235B;
+					  background-color: #FF235B;
 					  border-radius: 0.25rem
 					  "
-					  href="${userActivationLink}" target="_blank">Confirmar Cuenta</a>
+                 href="${userActivationLink}" target="_blank">
+                 Confirmar Cuenta
+               </a>
             </div>`,
          attachments: [
             {
@@ -98,7 +100,7 @@ async function registerUser(request, response, next) {
       });
 
    } catch (error) {
-      
+
       // if db is not created throw this error
       if (error.code === 'ER_BAD_DB_ERROR') {
          console.log('[ERROR] registerUser.js line:117');
