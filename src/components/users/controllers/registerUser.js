@@ -69,18 +69,23 @@ async function registerUser(request, response, next) {
          html: `
             <div>
                <img src="cid:logo"/>              
-               <p>Hola aventurero!</p>
+               <h2>Hola aventurero!</h2>
                <p>Para poder tener acceso a tu cuenta en Aventura Xperience,
-               necesitas confirmar este email con el siguiente enlace</p>            
+               necesitas confirmar este email con el siguiente enlace:</p> 
+               <br>           
 				   <a style="
 					  padding: 0.5rem 1rem;
 					  color: white;
 					  background-color: #FF235B;
-					  border-radius: 0.25rem
+                 border-radius: 0.25rem;
+                 text-decoration: none;
+                 margin: 1rem 0;
 					  "
                  href="${userActivationLink}" target="_blank">
                  Confirmar Cuenta
                </a>
+               <br>
+               <br>
             </div>`,
          attachments: [
             {
