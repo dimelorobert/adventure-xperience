@@ -69,7 +69,7 @@ async function registerUser(request, response, next) {
          html: `
             <div>
                <img src="cid:logo"/>              
-               <h2>Hola aventurero!</h2>
+               <h2>🙋🏿‍♂️ Hola aventurero!</h2>
                <p>Para poder tener acceso a tu cuenta en Aventura Xperience,
                necesitas confirmar este email con el siguiente enlace:</p> 
                <br>           
@@ -80,6 +80,7 @@ async function registerUser(request, response, next) {
                  border-radius: 0.25rem;
                  text-decoration: none;
                  margin: 1rem 0;
+                 font-weight: 600;
 					  "
                  href="${userActivationLink}" target="_blank">
                  Confirmar Cuenta
