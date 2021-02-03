@@ -1,89 +1,137 @@
-import getConnection from "../../../database";
-import { createSchema } from "../validations";
-import { v4 as uuidv4 } from "uuid";
+// required modules
 import bcrypt from "bcrypt";
-import helpers from "../../../helpers";
-import { sendEmail } from "../../../services";
 import path from "path";
+import getConnection from "../../../database";
+import helpers from "../../../helpers";
 
-const { PUBLIC_HOST, FIRST_DEFAULT_PORT } = process.env;
+import {
+	registerSchema
+} from "../validations";
+
+import {
+	v4 as uuidv4
+} from "uuid";
+
+import {
+	sendEmail
+} from "../../../services";
+
+
+const {
+	ADMIN_EMAIL,
+	PUBLIC_HOST,
+	FIRST_DEFAULT_PORT,
+	LOGO_IMAGE_PATH
+} = process.env;
 
 // we open connection to db
 let connectionDB;
 
 async function registerUser(request, response, next) {
-  try {
-    // we open connection to db
-    connectionDB = await getConnection();
+	try {
 
-    // we validate the data received from request body
-    await createSchema.validateAsync(request.body);
-    const { email, password } = request.body;
+		// open connection to db
+		connectionDB = await getConnection();
 
-    const [
-      emailExist,
-    ] = await connectionDB.query(`SELECT id FROM users WHERE email=?`, [email]);
-    if (emailExist) {
-      return response
-        .status(404)
-        .json({ message: "El email ya esta registrado" });
-    }
+		// validate data from request body
+		await registerSchema.validateAsync(request.body)
 
-    // we create an user object to save into db
-    const newUser = {
-      id: uuidv4(),
-      email: email,
-      password: await bcrypt.hash(password, 10),
-      activation_code: helpers.randomString(20),
-      ip: request.ip,
-    };
+		const {
+			email,
+			password
+		} = request.body;
 
-    // we save all data into db
-    await connectionDB.query(`INSERT INTO users SET ?`, newUser);
+		// we check if email already exist
+		const [emailExist] = await connectionDB.query(
+			`SELECT email FROM users WHERE email=?`, [
+				email,
+			]);
+		if (emailExist.length) {
+			console.log('[ERROR] registerUser.js line:46');
+			return response.status(404).json({
+				message: "El email ya esta registrado",
+			});
+		}
 
-    // we build a activation link
-    const userActivationLink = `${PUBLIC_HOST}:${FIRST_DEFAULT_PORT}/users/${newUser.id}/activate?code=${newUser.activation_code}`;
-    const imagePathEmail = path.join(
-      __dirname,
-      "../../../public/uploads/logo/logo.png"
-    );
-    console.log("IMAGE PATH EMAIL::::", imagePathEmail);
+		// formatted object to save into db
+		const newUser = {
+			id: uuidv4(),
+			email: email,
+			password: await bcrypt.hash(password, 10),
+			activation_code: helpers.randomString(20),
+			ip: request.ip,
+		};
 
-    // we create a html structure of our message
-    const mailOptions = {
-      from: "no-reply@gmail.com",
-      to: `${email}`,
-      subject: `Activa tu cuenta Aventura Xperience`,
-      text: `Confirma tu cuenta para poder acceder con tus datos`,
-      html: `
+		// save data into db
+		await connectionDB.query(
+			`INSERT INTO users SET ?`,
+			newUser
+		);
+
+		// build an activation link
+		const userActivationLink =
+			`${PUBLIC_HOST}:${FIRST_DEFAULT_PORT}/users/${newUser.id}/activate?code=${newUser.activation_code}`;
+
+		// build logo path
+		const imagePathEmail = path.join(
+			__dirname,
+			`../../../${LOGO_IMAGE_PATH}`
+		);
+
+		// build email to send
+		const mailOptions = {
+			from: ADMIN_EMAIL,
+			to: `${email}`,
+			subject: `⚠️ Confirma el email en Aventura xperience `,
+			text: `Muchas gracias por registrarte en Aventura Xperience`,
+			html: `
             <div>
-              Embedded image: <img src="no-reply@gmail.com"/>
-              <h1>Nueva cuenta Aventura Xperience</h1>
-              <p>Hola!</p>
-              <p>Confirma tu cuenta dando click en el siguiente enlace:</p>            
-              <a href="${userActivationLink}" target="_blank">CONFIRMAR CUENTA</a>
-              <p>Usuario: ${email}</p>
-              <p>Password: ${password}</p>
+              <img src="cid:logo"/>              
+              <h1></h1>
+              <p>Hola aventurero!</p>
+				  <p>Para poder tener acceso a tu cuenta en Aventura Xperience, 
+				  necesitamos que confirmes este email con el siguiente email</p>            
+				  <a style="
+					  padding: 0.5rem 1rem;
+					  color: white;
+					  background - color: #FF235B;
+					  border-radius: 0.25rem
+					  "
+					  href="${userActivationLink}" target="_blank">Confirmar Cuenta</a>
             </div>`,
-      attachments: [
-        {
-          filename: "logo.png",
-          path: imagePathEmail,
-          cid: "no-reply@gmail.com",
-        },
-      ],
-    };
+			attachments: [{
+				filename: "logo.png",
+				path: imagePathEmail,
+				cid: "logo",
+			}, ],
+		};
 
-    // we send email with link activation
-    await sendEmail(mailOptions);
+		// we send email with link activation
+		await sendEmail(mailOptions);
 
-    response.status(200).send({
-      message: "El usuario se ha creado con éxito, revisa tu correo",
-    });
-  } catch (error) {
-    next(error);
-  } finally {
-    await connectionDB.release();
-  }
+		// if everything it's ok we sen a json 
+		response.status(201).send({
+			message: "El usuario se ha creado con éxito, revisa tu correo",
+		});
+
+	} catch (error) {
+
+		// if db is not created throw this error
+		if (error.code === 'ER_BAD_DB_ERROR') {
+			console.log('[ERROR] registerUser.js line:117');
+			return response.status(500).send({
+				message: "Ha ocurrido un error en el servidor"
+			})
+		}
+
+		// else error default
+		console.log('[ERROR] registerUser.js line:124');
+		next(error);
+
+	} finally {
+		// we close connection 
+		if (connectionDB) await connectionDB.release();
+	}
 }
 
+export default registerUser;
