@@ -1,23 +1,30 @@
-import getConnection from "../../../database";
+// required modules to use
+import getConnection from '../../../database';
+
+// we define the variable to connect to db
 let connectionDB;
 
- async function getUsers(request, response, next) {
-  connectionDB = await getConnection();
-  try {
-    // we build a SQL query to list all users
-    const [result] = await connectionDB.query(
-      `SELECT id, name, surname, address, telephone, city, country, email, password, create_at, update_at, is_admin, is_account_active, ip FROM users;`
-    );
+async function getUsers(response, next) {
+   try {
+      // open connection to db
+      connectionDB = await getConnection();
 
-    response.status(200).json({
-      users: result,
-    });
-  } catch (error) {
-    response.status(400).send({ message: "No hay resultados" });
-    next(error);
-  } finally {
-    await connectionDB.release();
-  }
+      // we build a SQL query to list all users
+      const [userList] = await connectionDB.query('SELECT * FROM users;');
+      if (!userList) {
+         return response.status(400).send({ message: 'No hay resultados' });
+      }
+
+      // if everything it's ok we sen a json
+      response.status(200).json({
+         users: userList,
+      });
+   } catch (error) {
+      console.log('[ERROR] line:23 ');
+      next(error);
+   } finally {
+      if (!connectionDB) await connectionDB.release();
+   }
 }
-export default getUsers;
 
+export default getUsers;
