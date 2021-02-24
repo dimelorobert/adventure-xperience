@@ -1,4 +1,4 @@
-import registerUser from "./registerUser";
+import {registerUser, addUser} from "./registerUser";
 import getUsers from "./getUsers";
 import getUserById from "./getUserById";
 import updateUser from "./updateUser";
@@ -22,4 +22,5 @@ export {
   recoverPassword,
   uploadUserImage,
   loginUser,
+  addUser
 };

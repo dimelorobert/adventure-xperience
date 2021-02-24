@@ -1,46 +1,27 @@
-"use strict";
-
 import path from "path";
-
 import express from "express";
-
 import router from "./routes";
-
 import fileUpload from "express-fileupload";
-
 import morgan from "morgan";
-
 import cors from "cors";
-
-import { notFoundErrorHandler, previousErrorHandler } from "./middlewares";
-
 import "./database";
+import "dotenv/config";
 
 const app = express();
 
-/////////////////// MIDDLEWARES //////////////////////////
-app  
-  .use(morgan("dev"))
+// APPLICATION CONFIG
+app.use(morgan("dev"))
 
-  .use(cors())
-  
-  .use(fileUpload())
+	.use(cors())
 
-  .use(express.json())
+	.use(fileUpload())
 
-  .use(express.urlencoded({ extended: false }))
+	.use(express.json())
 
-  .use(express.static(path.join(__dirname, "public")))
+	.use(express.urlencoded({ extended: false }))
 
-  .use("/", router)
+	.use(express.static(path.join(__dirname, "public")))
 
-  
-
-  // MIDDLEWARE ERRORHANDLERS
-  // Catch the previous errors
-  .use(previousErrorHandler)
-
-  // Middleware not found
-  .use(notFoundErrorHandler);
+	.use("/", router);
 
 export default app;

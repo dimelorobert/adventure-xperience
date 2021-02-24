@@ -25,9 +25,10 @@ password VARCHAR(100) NOT NULL ,
 activation_code VARCHAR(255), 
 is_admin BOOLEAN DEFAULT false,
 is_account_active BOOLEAN DEFAULT false,
-create_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-update_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-password_update_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+create_at DATETIME,
+last_connection DATETIME DEFAULT CURRENT_TIMESTAMP,
+update_at DATETIME,
+password_update_at DATETIME,
 ip VARCHAR(20), 
 PRIMARY KEY(id)
 );

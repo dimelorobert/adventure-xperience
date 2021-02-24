@@ -1,77 +1,106 @@
+// required modules to use
 import getConnection from "../../../database";
 import { registerSchema } from "../validations";
 import bcrypt from "bcrypt";
 import { sign } from "jsonwebtoken";
+import path from "path";
+import helpers from "../../../helpers";
+import logger from "../../../helpers/logger";
 
-const { SECRET_KEY, EXPIRATION_TOKEN } = process.env;
+// uploading global variables to use
+const { SECRET_KEY, EXPIRATION_TOKEN, ERROR_PATH_LOGS } = process.env;
 
-// we open connection to db
+const locationNamefile = path.parse(__filename).base;
+
+// we define the variable to connect to db
 let connectionDB;
 
 async function loginUser(request, response, next) {
-  try {
-    // we open connection to db
-    connectionDB = await getConnection();
+	try {
+		// open connection to db
+		connectionDB = await getConnection();
 
-    // we validate type data received from client
-    await registerSchema.validateAsync(request.body);
-    const { email, password } = request.body;
+		// validate data from request body
+		await registerSchema.validateAsync(request.body);
+		const { email, password } = request.body;
 
-    const [userExistAndIsActive] = await connectionDB.query(
-      `
-        SELECT is_account_active, id, password, is_admin
-        FROM users 
-        WHERE email=? `,
-      [email]
-    );
+		// we check if the account exist
+		const [userExistAndIsActive] = await connectionDB.query(
+			`SELECT id, password, is_account_active, is_admin 
+         FROM users 
+         WHERE email=? `,
+			[email],
+		);
 
-    // we check if the account exist
-    if (!userExistAndIsActive[0].id) {
-      return response.status(401).json({
-        message: `La cuenta no existe, por favor crea una cuenta`,
-      });
-    }
+		if (userExistAndIsActive.length === 0 || !userExistAndIsActive[0].id) {
+			const infoError4Devs = {
+				errorName: "DATABASE WARNING",
+				errorDescription: "El usuario no existe",
+				errorLocationFile: locationNamefile,
+				errorBlockCode: "[userExistAndIsActive]",
+				errorFolderFile: path.join(
+					__dirname,
+					`../../../../${ERROR_PATH_LOGS}`,
+				),
+				errorDatetime: helpers.formatDate4Vue(new Date()),
+			};
+			logger.warn(infoError4Devs);
 
-    // we check if the account is activated
-    if (!userExistAndIsActive[0].is_account_active === 0) {
-      return response.status(401).json({
-        message: `La cuenta no esta activada`,
-      });
-    }
+			return response.status(401).json({
+				message: `La cuenta no existe, por favor registrate`,
+			});
+		}
 
-    // we check the passwords
-    const passwordMatch = await bcrypt.compare(
-      password,
-      userExistAndIsActive[0].password
-    );
+		// we check if the account is activated
+		if (!userExistAndIsActive[0].is_account_active === 0) {
+			return response.status(401).json({
+				message: `La cuenta no esta activada`,
+			});
+		}
 
-    if (!passwordMatch) {
-      return response.status(401).json({
-        message: `Contraseña incorrecta`,
-      });
-    }
-    const tokenPayload = {
-      id: userExistAndIsActive[0].id,
-      email: email,
-      password: userExistAndIsActive[0].password,
-      is_admin: userExistAndIsActive[0].is_admin,
-    };
+		// we compare password body with db password
+		const passwordMatch = bcrypt.compareSync(
+			password,
+			userExistAndIsActive[0].password,
+		);
+		if (!passwordMatch) {
+			return response.status(401).json({
+				message: `Contraseña incorrecta`,
+			});
+		}
 
-    const token = sign(tokenPayload, SECRET_KEY, {
-      expiresIn: EXPIRATION_TOKEN,
-    });
+		// build a payload for the token
+		const tokenPayload = {
+			id: userExistAndIsActive[0].id,
+			is_admin: userExistAndIsActive[0].is_admin,
+			is_account_active: userExistAndIsActive[0].is_account_active,
+		};
 
-    return response.status(200).json({
-      data: {
-        ...tokenPayload,
-        token,
-      },
-      message: `Has iniciado sesión`,
-    });
-  } catch (error) {
-    next(error);
-  } finally {
-    connectionDB.release();
-  }
+		// generate a token with the payload
+		const token = sign(tokenPayload, SECRET_KEY, {
+			expiresIn: EXPIRATION_TOKEN,
+		});
+
+		await connectionDB.query(
+			`UPDATE users 
+         SET last_connection=CURRENT_TIMESTAMP()
+         WHERE email=?`,
+			[email],
+		);
+
+		// if everything it's ok we sen a json
+		response.status(200).json({
+			data: {
+				...tokenPayload,
+				token,
+			},
+			message: `Iniciando sesión`,
+		});
+	} catch (error) {
+		next(error);
+		console.log("FROM LOGIN ERROR", error);
+	} finally {
+		if (connectionDB) connectionDB.release();
+	}
 }
 export default loginUser;

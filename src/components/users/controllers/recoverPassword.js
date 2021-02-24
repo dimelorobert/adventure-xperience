@@ -65,7 +65,8 @@ async function recoverPassword(request, response, next) {
   } catch (error) {
     next(error);
   } finally {
-    connectionDB.release();
+    if(connectionDB) connectionDB.release();
+   
   }
 }
 

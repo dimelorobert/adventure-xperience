@@ -1,6 +1,7 @@
 import getConnection from "../../../database";
 import { sendEmail } from "../../../services";
 
+
 // we open connection to db
 let connectionDB;
 async function deleteUser(request, response, next) {
@@ -35,7 +36,7 @@ async function deleteUser(request, response, next) {
         {
           filename: "logo.png",
           path: "/src/public/uploads/logo/logo.png",
-          cid: "logo", 
+          cid: "logo", // cid value as in the html img src
         },
       ],
     };

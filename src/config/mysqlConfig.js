@@ -1,0 +1,19 @@
+const {
+	MYSQL_HOST,
+	MYSQL_USER,
+	MYSQL_PASSWORD,
+	MYSQL_DATABASE,
+	MYSQL_CONNECTION_LIMITS,
+	MYSQL_TIMEZONE,
+} = process.env;
+
+export default {
+	connectionLimit: MYSQL_CONNECTION_LIMITS,
+	host: MYSQL_HOST,
+	user: MYSQL_USER,
+	password: MYSQL_PASSWORD,
+	database: MYSQL_DATABASE,
+	timezone: MYSQL_TIMEZONE,
+};
+
+

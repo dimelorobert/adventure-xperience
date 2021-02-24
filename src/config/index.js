@@ -1,3 +1,5 @@
+import "dotenv/config";
 import nodemailerAuthConfig from "./nodemailerAuthConfig";
+import mysqlConfig from "./mysqlConfig";
 
-export { nodemailerAuthConfig };
+export { nodemailerAuthConfig, mysqlConfig };
