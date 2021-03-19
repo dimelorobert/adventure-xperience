@@ -99,11 +99,26 @@ const helpers = {
 	},
 	checkFileSize: (pathFile, info) => {
 		fs.stat(pathFile, (error, stats) => {
-			console.log(`Peso en bytes del archivo ${stats.size} bytes`);
+			//console.log(`Peso en bytes del archivo ${stats.size} bytes`);
 			if (!error && stats.size >= 5242880) {
 				helpers.deleteFile(pathFile);
 			}
 		});
+	},
+	multipleColumnSet: object => {
+		if (typeof object !== "object") {
+			throw new Error("Invalid input");
+		}
+
+		const keys = Object.keys(object);
+		const values = Object.values(object);
+
+		let columnSet = keys.map(key => `${key} = ?`).join(", ");
+
+		return {
+			columnSet,
+			values,
+		};
 	},
 };
 export default helpers;

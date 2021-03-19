@@ -17,18 +17,18 @@ const locationErrorLog = path.join(
 const logger = {
 	error: msg => {
 		console.log(chalk.black.bgRed("[ ERROR ] :"), chalk.red(msg));
-		checkFileExist(msg);
+		checkFileExist(locationErrorLog, msg);
 	},
 	warning: msg => {
 		console.log(chalk.black.bgYellow("[ WARNING ] :"), chalk.yellow(msg));
 		checkFileExist(locationErrorLog, msg);
-		console.log(locationErrorLog);
+	
 	},
 	info: msg => {
 		console.log(chalk.black.bgBlue("[ INFO ] :"), chalk.blue(msg));
 	},
 	success: msg => {
-		console.log(chalk.black.bgGreen("[ SUCCESS ] :"), chalk.green(msg));
+		console.log(chalk.black.bgGreen("[ OK ] :"), chalk.green(msg));
 	},
 };
 

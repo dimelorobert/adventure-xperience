@@ -10,11 +10,11 @@ async function checkFileExist(pathFile, info = "") {
 	const conditionExist = error => {
 		if (error) {
 			helpers.createFile(pathFile, `${formatedHour} - ${info}\n`);
-			console.log("FROM CHECKFILE EXIST: El archivo no existe");
+			//console.log("FROM CHECKFILE EXIST: El archivo no existe");
 		} else {
 			helpers.checkFileSize(pathFile, info);
 			helpers.addTextFile(pathFile, `${formatedHour} - ${info}\n`);
-			console.log("ya existe");
+			//console.log("ya existe");
 		}
 	};
 

@@ -4,8 +4,8 @@ import router from "./routes";
 import fileUpload from "express-fileupload";
 import morgan from "morgan";
 import cors from "cors";
-import "./database";
-import "dotenv/config";
+import "./services/database";
+import "dotenv/";
 
 const app = express();
 
@@ -22,6 +22,6 @@ app.use(morgan("dev"))
 
 	.use(express.static(path.join(__dirname, "public")))
 
-	.use("/", router);
+	.use("/api/v1", router);
 
 export default app;

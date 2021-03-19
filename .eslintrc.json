@@ -17,12 +17,18 @@
       "jsx": true
     }
   },
+  "parser": "babel-eslint",
   "rules": {
+    
     "no-unused-vars": [
       "error",
       {
         "argsIgnorePattern": "next"
       }
     ]
-  }
+  },
+  
+  "no-console": "warn",
+  "no-use-before-define": "warn",
+  "spaced-comment": "warn"
 }
