@@ -1,0 +1,124 @@
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+body {
+	color: #2c2c2c;
+	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+	color: #00b7ff;
+}
+
+.container-logo img {
+	width: 15rem;
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	padding: 2rem 12rem;
+}
+
+.c-header-menu {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	width: 70%;
+}
+
+.c-header-menu ul {
+	display: flex;
+	width: inherit;
+	justify-content: space-between;
+}
+
+.c-header-menu ul li {
+	display: inline-flex;
+	list-style: none;
+}
+.c-header-menu ul li a {
+	text-decoration: none;
+	color: #2c2c2c;
+	font-weight: 700;
+	letter-spacing: 0.06rem;
+	word-spacing: 0.3rem;
+}
+
+.main {
+	display: flex;
+	height: 70vh;
+	width: 100%;
+	padding: 2rem 12rem;
+	background-image: url("../uploads/media/bg-main-h.jpg");
+	background-position: bottom;
+}
+
+.main .c-title {
+	display: flex;
+	flex-direction: column;
+
+	align-items: flex-start;
+	margin: 2rem 0;
+	padding: 8rem 0 8rem 0;
+	width: 65%;
+	max-width: 642px;
+}
+
+.main .c-title h1 {
+	font-size: 3rem;
+	color: #ffffff;
+}
+.main .c-title h2 {
+	color: #ffffff;
+}
+.main .c-title .cta {
+	align-items: flex-start;
+	display: inline-flex;
+	justify-content: flex-start;
+	margin: 1rem 0;
+}
+
+.main .c-title .cta a {
+	background-color: #ff2960;
+	border-radius: 0.5rem;
+	color: #ffffff;
+	padding: 1rem 2rem;
+	text-decoration: none;
+	text-align: center;
+	font-weight: 700;
+	letter-spacing: 0.06rem;
+}
+
+.main .c-title .cta a:hover {
+	background-color: #ffffff;
+	color: #2c2c2c;
+}
+
+.footer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 2rem 1rem;
+}
+.footer .container-logo-stacks {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 30%;
+}
+
+.footer .container-logo-stacks .stack-logos {
+	margin: 1rem;
+	width: 5rem;
+}
+
+.footer .container-logo-stacks .stack-logos:nth-child(3),
+.footer .container-logo-stacks .stack-logos:nth-child(4),
+.footer .container-logo-stacks .stack-logos:nth-child(5) {
+	width: 3rem;
+}

@@ -1,0 +1,232 @@
+{
+   "update_date": "2019.01",
+   "total_communities": 19,
+   "data": [{
+         "id": "01",
+
+         "community": "Andalucia",
+         "cities": [{
+            "name": "Almeria"
+         }, {
+            "name": "Cadiz"
+         }, {
+            "name": "Cordoba"
+         }, {
+            "name": "Granada"
+         }, {
+            "name": "Huelva"
+         }, {
+            "name": "Jaen"
+         }, {
+            "name": "Malaga"
+         }, {
+            "name": "Sevilla"
+         }]
+      },
+      {
+         "id": "02",
+         "country": "España",
+         "community": "Aragon",
+         "cities": [{
+            "name": "Huesca"
+         }, {
+            "name": "Teruel"
+         }, {
+            "name": "Zaragoza"
+         }]
+      },
+      {
+         "id": "03",
+         "country": "España",
+         "community": "Principado de Asturias",
+         "cities": [{
+            "name": "Gijón"
+         }, {
+            "name": "Oviedo"
+         }]
+      },
+      {
+         "id": "04",
+         "country": "España",
+         "community": "Islas Baleares",
+         "cities": [{
+            "name": "Mallorca"
+         }, {
+            "name": "Menorca"
+         }]
+      },
+      {
+         "id": "05",
+         "country": "España",
+         "community": "Islas Canarias",
+         "cities": [{
+            "name": "Las Palmas de Gran Canaria"
+         }, {
+            "name": "Santa Crúz de Tenerife"
+         }]
+      },
+      {
+         "id": "06",
+         "country": "España",
+         "community": "Cantabria",
+         "cities": [{
+            "name": "Santander"
+         }]
+      },
+      {
+         "id": "07",
+         "country": "España",
+         "community": "Castilla La Mancha",
+         "cities": [{
+            "name": "Albacete"
+         }, {
+            "name": "Ciudad Real"
+         }, {
+            "name": "Cuenca"
+         }, {
+            "name": "Guadalajara"
+         }, {
+            "name": "Toledo"
+         }]
+      },
+      {
+         "id": "08",
+         "country": "España",
+         "community": "Castilla y León",
+         "cities": [{
+               "name": "Avila"
+            }, {
+               "name": "Burgos"
+            }, {
+               "name": "León"
+            },
+            {
+               "name": "Palencia"
+            }, {
+               "name": "Salamanca"
+            }, {
+               "name": "Segovia"
+            }, {
+               "name": "Soria"
+            }, {
+               "name": "Valladolid"
+            }, {
+               "name": "Zamora"
+            }
+         ]
+      },
+      {
+         "id": "09",
+         "country": "España",
+         "community": "Cataluña",
+         "cities": [{
+            "name": "Barcelona"
+         }, {
+            "name": "Gerona"
+         }, {
+            "name": "Lerida"
+         }, {
+            "name": "Tarragona"
+         }]
+      },
+      {
+         "id": "010",
+         "country": "España",
+         "community": "Comunidad Valenciana",
+         "cities": [{
+            "name": "Alicante"
+         }, {
+            "name": "Castellón"
+         }, {
+            "name": "Valencia"
+         }]
+      },
+      {
+         "id": "11",
+         "country": "España",
+         "community": "Extremadura",
+         "cities": [{
+            "name": "Badajoz"
+         }, {
+            "name": "Caceres"
+         }]
+      },
+      {
+         "id": "012",
+         "country": "España",
+         "community": "Galicia",
+         "cities": [{
+            "name": "A Coruña"
+         }, {
+            "name": "Lugo"
+         }, {
+            "name": "Orense"
+         }, {
+            "name": "Pontevedra"
+         }, {
+            "name": "Santiago de Compostela"
+         }]
+      },
+      {
+         "id": "13",
+         "country": "España",
+         "community": "La Rioja",
+         "cities": [{
+            "name": "La Rioja"
+         }]
+      },
+      {
+         "id": "14",
+         "country": "España",
+         "community": "Comunidad de Madrid",
+         "cities": [{
+            "name": "Madrid"
+         }]
+      },
+      {
+         "id": "15",
+         "country": "España",
+         "community": "Comunidad de Navarra",
+         "cities": [{
+            "name": "Navarra"
+         }]
+      },
+      {
+         "id": "16",
+         "country": "España",
+         "community": "País Vasco",
+         "cities": [{
+            "name": "Bilbao"
+         }, {
+            "name": "Vitoria"
+         }, {
+            "name": "San Sebastian"
+         }]
+      },
+      {
+         "id": "17",
+         "country": "España",
+         "community": "Region de Murcia",
+         "cities": [{
+            "name": "Murcia"
+         }]
+      },
+      {
+         "id": "18",
+         "country": "España",
+         "community": "Ceuta",
+         "cities": [{
+            "name": "Ceuta"
+         }]
+      },
+      {
+         "id": "19",
+         "country": "España",
+         "community": "Melilla",
+         "cities": [{
+            "name": "Melilla"
+         }]
+      }
+   ],
+   "author": "Robert Hernández"
+}
