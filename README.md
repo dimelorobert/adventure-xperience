@@ -1,7 +1,15 @@
-# ADVENTURE XPERIENCE 
-#### Final project Bootcamp Hackaboss 2020 
-##### Project type Weekendesk web MVC (Model View Controller).
-![adventurexperience](https://github.com/dimelorobert/adventure-xperience/blob/master/project-data/slides/01.jpg)
+# Aventura Xperience API v.1.0.0.
 
+### Screenshot home:
 
-## Backend Functionalities
+![header project](./api/public/uploads/media/screeenshot.jpg "header project")
+
+## Used stacks:
+
+-  Node JS with Express JS framework
+-  Javascript ECMAScript 6
+-  Babel JS
+-  JSON Web Token ( JWT ).
+
+## Micro-services oriented architecture
+- 

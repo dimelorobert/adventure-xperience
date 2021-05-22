@@ -12,29 +12,6 @@ export default function (injectedStore) {
 		console.log("esto es el store", store);
 	}
 
-	async function findAll() {
-		return store.findAll(TABLE);
-	}
-
-	async function findOne(id) {
-		return store.findOne(TABLE, { id: id });
-	}
-
-	async function update(body, id) {
-		const userDataDB = await store.findOne(TABLE, { id: id });
-
-		const user = {
-			name: body.name || userDataDB.name,
-			surname: body.surname || userDataDB.surname,
-			address: body.address || userDataDB.address,
-			telephone: body.telephone || userDataDB.telephone,
-			country: body.country || userDataDB.country,
-			city: body.city || userDataDB.city,
-		};
-
-		return store.update(TABLE, user, { id: id });
-	}
-
 	async function create(body) {
 		const user = {
 			id: uuidV4(),
@@ -56,40 +33,71 @@ export default function (injectedStore) {
 		return await store.create(TABLE, user);
 	}
 
-	async function updateUser() {
-		const { id } = request.params;
-		const { name, surname, address, telephone, city, country } = request.body;
+	async function findAll() {
+		return store.findAll(TABLE);
+	}
 
-		// we check if user exist
-		const [
-			userExist,
-		] = await connectionDB.query(`SELECT id FROM users WHERE id=?`, [id]);
-		if (!userExist.length) {
-			return response.status(404).send({ message: "El usuario no existe" });
-		}
+	async function findOne(id) {
+		return store.findOne(TABLE, { id: id });
+	}
 
-		// we create an user object to save into db
+	async function update(body, id) {
+		//
+		const userDataDB = await store.findOne(TABLE, { id: id });
+
 		const user = {
-			id: id,
-			name: name,
-			surname: surname,
-			address: address,
-			telephone: telephone,
-			city: city,
-			country: country,
-			update_at: new Date(),
+			name: helpers.capitalize(
+				(body.name || userDataDB.name).toLowerCase().trim(),
+			),
+			surname: helpers.capitalize(
+				(body.surname || userDataDB.surname).toLowerCase().trim(),
+			),
+			address: helpers.capitalize(
+				(body.address || userDataDB.address).toLowerCase().trim(),
+			),
+			telephone: body.telephone || userDataDB.telephone,
+			country: helpers.capitalize(
+				(body.country || userDataDB.country).toLowerCase().trim(),
+			),
+			city: helpers.capitalize(
+				(body.city || userDataDB.city).toLowerCase().trim(),
+			),
 		};
 
-		// we save data into db
-		await connectionDB.query(`UPDATE users SET ?`, user);
+		return store.update(TABLE, user, { id: id });
+	}
 
-		response.status(200).send({ message: "Usuario actualizado" });
+	async function remove(body, id) {
+		//
+		const userDataDB = await store.findOne(TABLE, { id: id });
+
+		const user = {
+			name: helpers.capitalize(
+				(body.name || userDataDB.name).toLowerCase().trim(),
+			),
+			surname: helpers.capitalize(
+				(body.surname || userDataDB.surname).toLowerCase().trim(),
+			),
+			address: helpers.capitalize(
+				(body.address || userDataDB.address).toLowerCase().trim(),
+			),
+			telephone: body.telephone || userDataDB.telephone,
+			country: helpers.capitalize(
+				(body.country || userDataDB.country).toLowerCase().trim(),
+			),
+			city: helpers.capitalize(
+				(body.city || userDataDB.city).toLowerCase().trim(),
+			),
+		};
+
+		return store.update(TABLE, user, { id: id });
 	}
 
 	return {
+		create,
 		findAll,
 		findOne,
-		create,
 		update,
+		remove,
 	};
 }
