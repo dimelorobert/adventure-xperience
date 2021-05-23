@@ -5,8 +5,9 @@ const userRoutes = {
 	create: (req, res, next) => {
 		controller
 			.create(req.body)
+
 			.then(() => {
-				return response.success(req, res, "Cuenta creada con éxito", 201);
+				response.success(req, res, "Cuenta creada con éxito", 201);
 			})
 			.catch(next);
 	},
@@ -15,7 +16,7 @@ const userRoutes = {
 		controller
 			.update(req.body, req.params.id)
 			.then(() => {
-				return response.success(req, res, "Datos actualizados", 200);
+				response.success(req, res, "Datos actualizados", 200);
 			})
 			.catch(next);
 	},
@@ -35,20 +36,16 @@ const userRoutes = {
 			.then(user => {
 				response.success(req, res, user, 200);
 			})
-			.catch(error => {
-				response.error(req, res, error.message, 500);
-			});
+			.catch(next);
 	},
 
 	remove: (req, res, next) => {
 		controller
-			.remove(req.body)
-			.then(user => {
-				response.success(req, res, user, 200);
+			.remove(req.params.id)
+			.then(() => {
+				response.success(req, res, "Datos borrados con éxito", 200);
 			})
-			.catch(error => {
-				response.error(req, res, error.message, 500);
-			});
+			.catch(next);
 	},
 };
 /*

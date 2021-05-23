@@ -12,7 +12,6 @@ function previous(error, request, response, next) {
 function notFound(request, response) {
 	logger.error(chalk.red("[404] => Pagina no encontrada"));
 	response.status(404).send({
-		status: 404,
 		message: "Pagina no encontrada",
 		comment: "¿Te has Perdido?",
 	});

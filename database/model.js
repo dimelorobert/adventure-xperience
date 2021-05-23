@@ -68,9 +68,7 @@ const model = {
 	update: async (tableName, user, id) => {
 		connectionDB = await getConnection();
 		const { columnSet, values } = multipleColumnSet(user);
-		const { columnSet: condition, values: cValues } = multipleColumnSet(
-			id,
-		);
+		const { columnSet: condition, values: cValues } = multipleColumnSet(id);
 		let sql = `
 			UPDATE ${tableName} SET ${columnSet} WHERE ${condition}`;
 
@@ -78,6 +76,20 @@ const model = {
 		const affectedRows = result ? result.affectedRows : 0;
 
 		return affectedRows;
+	},
+	remove: async (tableName, id) => {
+		connectionDB = await getConnection();
+		const { columnSet, values } = multipleColumnSet(id);
+
+		const sql = `DELETE FROM ${tableName}
+        WHERE ${columnSet}`;
+
+		const [result] = await connectionDB.query(sql, [...values]);
+
+		if (connectionDB) {
+			connectionDB.release();
+		}
+		return result[0] || null;
 	},
 
 	upsert: (tableName, data) => {

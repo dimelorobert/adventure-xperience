@@ -67,30 +67,20 @@ export default function (injectedStore) {
 		return store.update(TABLE, user, { id: id });
 	}
 
-	async function remove(body, id) {
+	async function remove(id) {
 		//
-		const userDataDB = await store.findOne(TABLE, { id: id });
+		const email = await store.findOne(TABLE, { id: id });
 
-		const user = {
-			name: helpers.capitalize(
-				(body.name || userDataDB.name).toLowerCase().trim(),
-			),
-			surname: helpers.capitalize(
-				(body.surname || userDataDB.surname).toLowerCase().trim(),
-			),
-			address: helpers.capitalize(
-				(body.address || userDataDB.address).toLowerCase().trim(),
-			),
-			telephone: body.telephone || userDataDB.telephone,
-			country: helpers.capitalize(
-				(body.country || userDataDB.country).toLowerCase().trim(),
-			),
-			city: helpers.capitalize(
-				(body.city || userDataDB.city).toLowerCase().trim(),
-			),
-		};
+		console.log("Estos es db:::", email);
+		//
+		const mailOptions = emailTemplates.delete_user(email);
+		await sendEmail(mailOptions);
 
-		return store.update(TABLE, user, { id: id });
+		//
+		await authentication.remove({ id: id });
+
+		//
+		return store.remove(TABLE, { id: id });
 	}
 
 	return {

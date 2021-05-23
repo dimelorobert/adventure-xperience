@@ -1,5 +1,6 @@
 import auth from "../../../auth";
 import bcrypt from "bcrypt";
+import helpers from "../../../utils/helpers";
 
 const TABLE = "authentication";
 
@@ -10,36 +11,40 @@ export default function (injectedStore) {
 	}
 
 	async function login(email, password) {
+		//
 		const data = await store.query(TABLE, { email: email });
-		console.log("ESTA ES LA DATA:::",data)
 
-		const checkPassword = await bcrypt.compare(password, data.password)
+		const checkPassword = await bcrypt.compare(password, data.password);
 		if (checkPassword === true) {
 			// generate token
 			const token = auth.sign(data);
-			console.log("ESTE ES EL TOKEN:::", token);
 			return token;
 		} else {
-			throw new Error("Datos Incorrectos");
+			helpers.errorGenerator("Datos Incorrectos", 409);
 		}
 	}
 
-	async function upsert(userData) {
-		const authenticationData = {
-			id: userData.id,
+	async function upsert(body) {
+		const loginData2SaveDB = {
+			id: body.id,
 		};
 
-		if (userData.email) {
-			authenticationData.email = userData.email;
+		if (body.email && body.password) {
+			loginData2SaveDB.email = body.email;
+			loginData2SaveDB.password = await bcrypt.hash(body.password, 10);
 		}
-		if (userData.password) {
-			authenticationData.password = await bcrypt.hash(userData.password, 10);
-		}
-		return store.upsert(TABLE, authenticationData);
+
+		return await store.create(TABLE, loginData2SaveDB);
 	}
+
+	async function remove(id) {
+
+		return await store.remove(TABLE, id);
+	 }
 
 	return {
 		upsert,
 		login,
+		remove
 	};
 }
