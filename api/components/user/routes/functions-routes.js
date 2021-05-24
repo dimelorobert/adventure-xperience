@@ -47,6 +47,15 @@ const userRoutes = {
 			})
 			.catch(next);
 	},
+
+	activate: (req, res, next) => {
+		controller
+			.activate(req.params.id)
+			.then(() => {
+				response.success(req, res, "Cuenta activada", 200);
+			})
+			.catch(next);
+	},
 };
 /*
 const create = (req, res, next) => {

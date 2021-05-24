@@ -2,17 +2,17 @@ import model from "../../../../database/model";
 import logger from "../../../../utils/helpers/logger";
 import chalk from "chalk";
 import response from "../../../../routes/response";
-const uTABLE = "users";
+const TABLE = "users";
 
 async function userChecker(req, res, next) {
 	//
 	if (req.method === "POST") {
 		const { email } = req.body;
 
-		const emailExists = await model.findOne(uTABLE, { email: email });
+		const emailExists = await model.findOne(TABLE, { email: email });
 
 		if (emailExists) {
-			logger.error(chalk.red("[Middleware]: El email ya esta registrado"));
+			logger.error(chalk.red("[ Middleware EmailExist ]: El email ya esta registrado"));
 
 			return response.error(
 				req,
@@ -37,10 +37,10 @@ async function userChecker(req, res, next) {
 		const { id } = req.params;
 
 		// check if user already exist
-		const userExists = await model.findOne(uTABLE, { id: id });
+		const userExists = await model.findOne(TABLE, { id: id });
 
 		if (!userExists) {
-			logger.error(chalk.red("[Middleware]: El usuario no existe"));
+			logger.error(chalk.red("[ Middleware userExist ]: El usuario no existe"));
 
 			return response.error(req, res, customError, req.status);
 		}

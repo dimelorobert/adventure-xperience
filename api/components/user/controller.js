@@ -69,11 +69,10 @@ export default function (injectedStore) {
 
 	async function remove(id) {
 		//
-		const email = await store.findOne(TABLE, { id: id });
+		const { email } = await store.findOne(TABLE, { id: id });
 
-		console.log("Estos es db:::", email);
 		//
-		const mailOptions = emailTemplates.delete_user(email);
+		const mailOptions = emailTemplates.delete_user({ email: email });
 		await sendEmail(mailOptions);
 
 		//
@@ -83,11 +82,22 @@ export default function (injectedStore) {
 		return store.remove(TABLE, { id: id });
 	}
 
+	async function activate(id) {
+		//
+		const userActivation = {
+			is_account_active: 1,
+			activation_code: "expired",
+		};
+
+		return await store.update(TABLE, userActivation, { id: id });
+	}
+
 	return {
 		create,
 		findAll,
 		findOne,
 		update,
 		remove,
+		activate,
 	};
 }
