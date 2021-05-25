@@ -3,6 +3,7 @@ import { es } from "date-fns/locale";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs";
+import config from "../../api/config";
 
 const helpers = {
 	formatDateToDB: date => {
@@ -104,6 +105,24 @@ const helpers = {
 				helpers.deleteFile(pathFile);
 			}
 		});
+	},
+
+	randomAvatar: () => {
+		// Creamos variable que se encargara de asignar una imagen aleatoria a cada usuario que no envie imagen
+		let randomImage = Math.floor(Math.random() * 8) + 1;
+
+		// Creacion del nombre del archivo ex: avatar-5.jpg
+		const avatarImage = "avatar-" + `${randomImage}` + ".jpg";
+
+		// creamos path del archivo
+		const pathImageDefault = path.join(
+			__dirname,
+			`../../api/public/${config.pathFiles.avatar}`,
+			`./${avatarImage}`,
+		);
+		console.log("ESTE ES DEFAULT PATH IMAGE", pathImageDefault);
+		// Asignamos este valor a image y este a su vez a savedFileName para que salga de la condicion null || undefined con el valor que le hemos asigando por defecto
+		return pathImageDefault;
 	},
 };
 export default helpers;

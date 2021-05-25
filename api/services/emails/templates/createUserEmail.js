@@ -7,7 +7,7 @@ const imagePathEmail = path.join(
 );
 
 const addMail = ({ id, email, activation_code }) => {
-	const userActivationLink = `${config.api.host}:${config.api.port}/users/${id}/activate?code=${activation_code}`;
+	const activationLink = `${config.api.host}:${config.api.port}/user/${id}/activate?code=${activation_code}`;
 
 	return {
 		from: `Aventura Xperience <${config.nodemailer.admin_email}>`,
@@ -28,14 +28,14 @@ const addMail = ({ id, email, activation_code }) => {
 								text-decoration: none;
 								margin: 1rem 0;
 								font-weight: 600; 
-							" href="${userActivationLink}" target="_blank">
+							" href="${activationLink}" target="_blank">
                  		Confirmar Cuenta
                		</a>
                		<br>
                		<br>
                		<p>Tambien puedes copiar el link y pegarlo en la barra de direcciones</p>
                		<p>de tu navegador de confiaza para activar la cuenta manualmente:</p> 
-               		<pre>${userActivationLink}</pre> 
+               		<pre>${activationLink}</pre> 
                		<br>
 					</div>`,
 		attachments: [

@@ -11,7 +11,8 @@ router
 	.post("/create", userChecker, validation.createSchema, userRoutes.create)
 	.get("/list", userRoutes.findAll)
 	.get("/:id", userChecker, userRoutes.findOne)
-	.get("/:id/activate", linkChecker, userRoutes.activate)
+	.get("/:id/activate", linkChecker.activate, userRoutes.activate)
+	.get("/:id/deactivate", linkChecker.deactivate, userRoutes.deactivate)
 	.put("/:id/update", userChecker, validation.updateSchema, userRoutes.update)
 	.delete("/:id/delete", userChecker, userRoutes.remove);
 

@@ -4,44 +4,60 @@ import chalk from "chalk";
 import response from "../../../../routes/response";
 const TABLE = "users";
 
-async function linkChecker(req, res, next) {
-	//
-	const { id } = req.params;
+const linkChecker = {
+	activate: async (req, res, next) => {
+		//
+		const { id } = req.params;
 
-	// check if code was already used
-	const { activation_code } = await model.findOne(TABLE, { id: id });
+		// check if code was already used
+		const { activation_code } = await model.findOne(TABLE, { id: id });
 
-	if (activation_code === null) {
-		logger.error(
-			chalk.red(
-				"[Link Middleware]: No dispones de un codigo de activación, solicita uno para activar la cuenta",
-			),
-		);
-		return response.error(
-			req,
-			res,
-			{
-				message:
-					"No dispones de un codigo de activación, solicita uno para activar la cuenta",
-			},
-			410,
-		);
-	}
+		if (activation_code === null) {
+			logger.error(
+				chalk.red(
+					"[Link Middleware]: Cuenta desactivada, solicita un código para activarla",
+				),
+			);
+			return response.error(
+				req,
+				res,
+				{
+					message: "Código de activación expirado",
+				},
+				410,
+			);
+		}
 
-	if (activation_code === "expired") {
-		logger.error(
-			chalk.red("[Link Middleware]: El link de activación ha expirado"),
+		next();
+	},
+
+	deactivate: async (req, res, next) => {
+		//
+		const { id } = req.params;
+
+		// check if code was already used
+		const { is_account_active, activation_code } = await model.findOne(
+			TABLE,
+			{ id: id },
 		);
-		return response.error(
-			req,
-			res,
-			{
-				message: "El link de activación ha expirado",
-			},
-			410,
-		);
-	}
-	next();
-}
+
+		//
+		if (is_account_active === 0 && activation_code === null) {
+			logger.error(
+				chalk.red("[Link Middleware]:La cuenta esta descativada"),
+			);
+			return response.error(
+				req,
+				res,
+				{
+					message:
+						"La cuenta esta descativada, solicita un codigo de activación",
+				},
+				410,
+			);
+		}
+		next();
+	},
+};
 
 export default linkChecker;

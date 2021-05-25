@@ -9,7 +9,6 @@ export default function (injectedStore) {
 	let store = injectedStore;
 	if (!store) {
 		store = require("../../../database/dummy");
-		console.log("esto es el store", store);
 	}
 
 	async function create(body) {
@@ -17,6 +16,7 @@ export default function (injectedStore) {
 			id: uuidV4(),
 			email: body.email.toLowerCase().trim(),
 			activation_code: helpers.randomString(20),
+			image: helpers.randomAvatar(),
 		};
 
 		if (body.email && body.password) {
@@ -84,12 +84,35 @@ export default function (injectedStore) {
 
 	async function activate(id) {
 		//
+		const { email } = await store.findOne(TABLE, { id: id });
+
+		//
+		const mailOptions = emailTemplates.activate_user({ email: email });
+		await sendEmail(mailOptions);
+		//
 		const userActivation = {
 			is_account_active: 1,
-			activation_code: "expired",
+			activation_code: null,
 		};
 
 		return await store.update(TABLE, userActivation, { id: id });
+	}
+
+	async function deactivate(id) {
+		//
+		const { email } = await store.findOne(TABLE, { id: id });
+
+		//
+		const mailOptions = emailTemplates.deactivate_user({ email: email });
+		await sendEmail(mailOptions);
+
+		//
+		const userDeactivation = {
+			is_account_active: 0,
+			activation_code: null,
+		};
+
+		return await store.update(TABLE, userDeactivation, { id: id });
 	}
 
 	return {
@@ -99,5 +122,6 @@ export default function (injectedStore) {
 		update,
 		remove,
 		activate,
+		deactivate,
 	};
 }

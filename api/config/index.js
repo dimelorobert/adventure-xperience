@@ -32,6 +32,7 @@ const defaultConfig = {
 	},
 	pathFiles: {
 		logo: process.env.LOGO_IMAGE_PATH,
+		avatar: process.env.AVATAR_DEFAULT,
 	},
 };
 
