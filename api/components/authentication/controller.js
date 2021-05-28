@@ -10,14 +10,15 @@ export default function (injectedStore) {
 		store = require("../../../database/dummy");
 	}
 
-	async function login(email, password) {
+	async function login(email, password, ip) {
 		//
-		const data = await store.query(TABLE, { email: email });
+		const {id, email:dbEmail, password: dbPassword} = await store.findOne(TABLE, { email: email });
+console.log("ESTA ES LA IP",ip)
 
-		const checkPassword = await bcrypt.compare(password, data.password);
+		const checkPassword = await bcrypt.compare(password, dbPassword);
 		if (checkPassword === true) {
 			// generate token
-			const token = auth.sign(data);
+			const token = auth.sign({id, dbEmail, dbPassword});
 			return token;
 		} else {
 			helpers.errorGenerator("Datos Incorrectos", 409);
@@ -38,13 +39,12 @@ export default function (injectedStore) {
 	}
 
 	async function remove(id) {
-
 		return await store.remove(TABLE, id);
-	 }
+	}
 
 	return {
 		upsert,
 		login,
-		remove
+		remove,
 	};
 }

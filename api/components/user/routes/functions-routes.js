@@ -34,7 +34,7 @@ const userRoutes = {
 			})
 			.catch(next);
 	},
-	
+
 	update: (req, res, next) => {
 		controller
 			.update(req.body, req.params.id)
@@ -72,6 +72,14 @@ const userRoutes = {
 			.deactivate(req.params.id)
 			.then(() => {
 				response.success(req, res, { message: "Cuenta desactivada" }, 200);
+			})
+			.catch(next);
+	},
+	newCode: (req, res, next) => {
+		controller
+			.newCode(req.body.email)
+			.then(() => {
+				response.success(req, res, { message: "Código Enviado" }, 200);
 			})
 			.catch(next);
 	},

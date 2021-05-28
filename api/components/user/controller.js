@@ -115,6 +115,21 @@ export default function (injectedStore) {
 		return await store.update(TABLE, userDeactivation, { id: id });
 	}
 
+	async function newCode(email) {
+		const userDataDB = await store.findOne(TABLE, { email: email });
+
+		const user = {
+			id: userDataDB.id,
+			email: email.trim().toLowerCase(),
+			activation_code: helpers.randomString(20),
+		};
+
+		const mailOptions = emailTemplates.new_code_user(user);
+		await sendEmail(mailOptions);
+
+		return await store.update(TABLE, user, { email: user.email });
+	}
+
 	return {
 		create,
 		findAll,
@@ -123,5 +138,6 @@ export default function (injectedStore) {
 		remove,
 		activate,
 		deactivate,
+		newCode,
 	};
 }

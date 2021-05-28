@@ -6,8 +6,7 @@ const imagePathEmail = path.join(
 	`../../../${config.pathFiles.logo}`,
 );
 
-const activateMail = ({ id, email, activation_code }) => {
-
+const activateMail = ({ email }) => {
 	return {
 		from: config.nodemailer.admin_email,
 		to: email,
@@ -19,7 +18,7 @@ const activateMail = ({ id, email, activation_code }) => {
 				  <h2>🎉WooHoo!!</h2>
               <h3>👋 Bienvenido a Aventura Xperience, aventurero!</h3>
 				  <p>Puedes iniciar sesión en tu cuenta dando click en el siguiente enlace:</p>
-				  <br>           
+				  <br>
 				   <a style="
 					  padding: 0.5rem 1rem;
 					  color: white;
@@ -43,5 +42,5 @@ const activateMail = ({ id, email, activation_code }) => {
 			},
 		],
 	};
-}
+};
 export default activateMail;

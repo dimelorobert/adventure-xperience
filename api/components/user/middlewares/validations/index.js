@@ -1,6 +1,6 @@
 import createSchema from "./createSchema";
 import updateSchema from "./updateSchema";
 
-const validations = { createSchema, updateSchema };
+const validationSchema = { create: createSchema, update: updateSchema };
 
-export default validations;
+export default validationSchema;

@@ -49,7 +49,8 @@ const model = {
 		if (connectionDB) {
 			connectionDB.release();
 		}
-		return result[0] || null;
+
+		return result[0];
 	},
 	create: async (tableName, user) => {
 		connectionDB = await getConnection();

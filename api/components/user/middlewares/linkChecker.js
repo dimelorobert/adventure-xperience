@@ -14,9 +14,7 @@ const linkChecker = {
 
 		if (activation_code === null) {
 			logger.error(
-				chalk.red(
-					"[Link Middleware]: Cuenta desactivada, solicita un código para activarla",
-				),
+				chalk.red("[Link Middleware]: Código de activación expirado"),
 			);
 			return response.error(
 				req,

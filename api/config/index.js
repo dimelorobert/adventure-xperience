@@ -6,6 +6,9 @@ const defaultConfig = {
 	api: {
 		host: process.env.HOST,
 		port: process.env.FIRST_DEFAULT_PORT || process.env.SECOND_DEFAULT_PORT,
+		routes: {
+			user: process.env.USER_ROUTES
+		}
 	},
 
 	jwt: {

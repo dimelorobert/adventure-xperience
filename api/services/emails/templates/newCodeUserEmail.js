@@ -6,7 +6,7 @@ const imagePathEmail = path.join(
 	`../../../${config.pathFiles.logo}`,
 );
 
-const addMail = ({ id, email, activation_code }) => {
+const newCodeUserMail = ({ id, email, activation_code }) => {
 	const { host, port, routes } = config.api;
 
 	const activationLink = `${host}:${port}/${routes.user}/${id}/activate?code=${activation_code}`;
@@ -14,13 +14,13 @@ const addMail = ({ id, email, activation_code }) => {
 	return {
 		from: `Aventura Xperience <${config.nodemailer.admin_email}>`,
 		to: `${email}`,
-		subject: `⚠️ Confirma el email para activar tu cuenta en Aventura xperience `,
-		text: `Muchas gracias por registrarte, solo estas a un paso de tener acceso a tu cuenta.`,
+		subject: `🔑 Nuevo codigo de activación para tu cuenta en Aventura xperience `,
+		text: `Hemos generado un nuevo código de activación para tu cuenta`,
 		html: `<div>
                		<img src="cid:logo"/>
                		<h2>👋 Hola aventurero!</h2>
-               		<p>Para poder tener acceso a tu cuenta en Aventura Xperience,</p>
-               		<p>necesitas confirmar este email con el siguiente enlace:</p>
+               		<p>Te hemos generado un nuevo codigo para activar tu cuenta,</p>
+               		<p>en Aventura Xperience.</p>
                		<br>
 							<a style="
 								padding: 0.5rem 1rem;
@@ -35,7 +35,7 @@ const addMail = ({ id, email, activation_code }) => {
                		</a>
                		<br>
                		<br>
-               		<p>Tambien puedes copiar el link y pegarlo en la barra de direcciones</p>
+               		<p>Recuerda que tambien puedes copiar el link y pegarlo en la barra de direcciones</p>
                		<p>de tu navegador de confiaza para activar la cuenta manualmente:</p>
                		<pre>${activationLink}</pre>
                		<br>
@@ -50,4 +50,4 @@ const addMail = ({ id, email, activation_code }) => {
 	};
 };
 
-export default addMail;
+export default newCodeUserMail;

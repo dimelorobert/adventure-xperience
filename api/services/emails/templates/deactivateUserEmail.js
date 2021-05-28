@@ -6,15 +6,14 @@ const imagePathEmail = path.join(
 	`../../../${config.pathFiles.logo}`,
 );
 
-const activateMail = ({ id, email, activation_code }) => {
-
+const activateMail = ({ email }) => {
 	return {
 		from: `Aventura Xperience <${config.nodemailer.admin_email}>`,
 		to: `${email}`,
 		subject: `😴 Tu cuenta en Aventura xperience ha sido desactivada`,
 		text: `Te mereces un descanso, aventurero!`,
 		html: `<div>
-               		<img src="cid:logo"/>              
+               		<img src="cid:logo"/>
                		<h2>😴 Te mereces un descanso, aventurero!</h2>
                		<p>Entendemos que necesites un descanso despues de tantas aventuras y experiencias vividas con nosotros</p>
 							<p>Recuerda que puedes reactivar tu cuenta solicitando un nuevo codigo de activacion</p>
@@ -42,5 +41,5 @@ const activateMail = ({ id, email, activation_code }) => {
 			},
 		],
 	};
-}
+};
 export default activateMail;
